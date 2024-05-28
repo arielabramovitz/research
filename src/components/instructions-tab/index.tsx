@@ -8,19 +8,19 @@ function InstructionsTab() {
   };
 
   return (
-    <div className="flex-col border-collapse rounded">
+    <div className="flex-col border-collapse">
       <div
-        className="group flex justify-between pl-4 pr-4 p-1 border-2 border-opacity-25 border-blue-700 text-right select-none bg-[#bae1ff]"
+        className="group flex justify-between pl-4 pr-4 p-1 border-2 text-right select-none"
         onClick={handleClick}
       >
-      <div className="pl-2 ">הוראות</div>
-      <div className="opacity-40 group-hover:opacity-75">(לחץ כדי להרחיב)</div>
+      <div className="">הוראות</div>
+      <div className="opacity-50 group-hover:opacity-100">(לחץ כדי להרחיב)</div>
       
       </div>
       {!expend ? (
         <></>
       ) : (
-        <p className="border-2 px-6 h-72 border-opacity-25 border-blue-700 border-t-0 text-right overflow-y-auto bg-[#bae1ff] bg-opacity-50 rounded">
+        <p className="inst border-2 py-2 px-6 h-72 border-opacity-25 border-blue-700 border-t-0 text-right overflow-y-auto ">
           
                   קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף 
               קונסקטורר אדיפיסינג אלית. סת אלמנקום ניסי נון ניבאה. דס איאקוליס וולופטה דיאם. וסטיבולום אט דולור, קראס אגת לקטוס וואל אאוגו וסטיבולום סוליסי טידום בעליק. קונדימנטום קורוס בליקרה, נונסטי קלובר בריקנה סטום, לפריקך תצטריק לרטי. 

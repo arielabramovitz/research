@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "conllu": "^0.1.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "xregexp": "^4.3"
   },
   "devDependencies": {
     "@eslint/compat": "^1.0.1",

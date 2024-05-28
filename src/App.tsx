@@ -8,6 +8,7 @@ function App() {
     <div className='flex-1 max-w-full p-8'>
       <InstructionsTab></InstructionsTab>
       <ExamplesTab></ExamplesTab>
+      <SurveyForm></SurveyForm>
     </div>
   )
 }

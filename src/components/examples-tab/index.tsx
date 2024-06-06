@@ -20,9 +20,10 @@ function ExamplesTab() {
         const firstSentence: string = (first.meta[1] as Meta).value
         var secondSentence: string = (second.meta[1] as Meta).value
         const thirdSentence: string = (third.meta[1] as Meta).value
-        const secondVerbs: NominalToken[] = second.tokens.filter((token: NominalToken)=>token.upos==="VERB")
-        secondVerbs.forEach((token: NominalToken)=>{secondSentence=secondSentence.replace(token.form, `<strong>${token.form}</strong>`)})
+        const secondVerbs: Token[] = second.tokens.filter((token: NominalToken)=>token.upos === "VERB" && token.form)
         console.log(secondVerbs)
+        const boldedVerb = secondVerbs[Math.floor(Math.random() * secondVerbs.length)]?.form
+        secondSentence = secondSentence.replace(boldedVerb, `<strong>${boldedVerb}</strong>`) || ""
         ex[i] = (
           <div>
             <span className="">{firstSentence}</span>

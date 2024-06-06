@@ -82,7 +82,7 @@ function ExamplesTab() {
   return (
     <div className="my-2 flex-col border-collapse">
       <div
-        className="group justify-between align-center w-full pl-4 pr-4 flex p-1 border-2 text-right select-none"
+        className="group justify-between align-center w-full h-8 pl-4 pr-4 flex p-1 bd text-right select-none"
         onClick={handleExpend}
       >
         <div className="pl-2">דוגמאות</div>
@@ -93,12 +93,12 @@ function ExamplesTab() {
       {!expend ? (
         <></>
       ) : (
-        <div className="border-2 px-6 h-fit border-opacity-25 border-blue-700 border-t-0 text-right overflow-y-auto select-none">
-          <div className="flex items-center border-b-[#d7d7d7] h-12 border-b-2 mt-2 px-2 ">
+        <div className="px-6 h-56 bd border-t-0 text-right overflow-y-auto select-none">
+          <div className="flex items-center h-12 mt-2 px-2 ">
             {createExampleButtons()}
           </div>
           {chosen == -1 ? <></> : (
-            <div className="h-32 border-2 m-4 select-text overflow-y-auto rounded-md">
+            <div className="h-32 bd m-4 select-text overflow-y-auto rounded-md">
               {examples[chosen]}
             </div>
           )}

@@ -21,7 +21,6 @@ function ExamplesTab() {
         var secondSentence: string = (second.meta[1] as Meta).value
         const thirdSentence: string = (third.meta[1] as Meta).value
         const secondVerbs: Token[] = second.tokens.filter((token: NominalToken)=>token.upos === "VERB" && token.form)
-        console.log(secondVerbs)
         const boldedVerb = secondVerbs[Math.floor(Math.random() * secondVerbs.length)]?.form
         secondSentence = secondSentence.replace(boldedVerb, `<strong>${boldedVerb}</strong>`) || ""
         ex[i] = (

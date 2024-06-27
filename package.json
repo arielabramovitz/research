@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "conllu": "^0.1.2",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.10.3",
     "react-dom": "^18.2.0",
     "xregexp": "^4.3"
   },
@@ -24,6 +26,7 @@
     "@typescript-eslint/parser": "^7.9.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
+    "daisyui": "^4.12.10",
     "eslint": "^9.3.0",
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.0",

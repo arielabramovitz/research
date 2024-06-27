@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, React } from "react";
+import { Collapse, Container, Card} from "react-bootstrap";
 
 function InstructionsTab() {
   const [expend, setExpend] = useState(false);
@@ -8,41 +9,28 @@ function InstructionsTab() {
   };
 
   return (
-    <div className="flex-col border-collapse">
-      <div
-        className="group h-8 flex justify-between pl-4 pr-4 p-1 bd text-right select-none text-sm"
-        onClick={handleClick}
-      >
-      <div className="">הוראות</div>
-      <div className="opacity-50 group-hover:opacity-100">(לחץ כדי להרחיב)</div>
-      
-      </div>
-      {!expend ? (
-        <></>
-      ) : (
-        <p className="inst bd py-2 px-6 h-72 border-opacity-25 border-blue-700 border-t-0 text-right overflow-y-auto ">
-          
-                  קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף 
-              קונסקטורר אדיפיסינג אלית. סת אלמנקום ניסי נון ניבאה. דס איאקוליס וולופטה דיאם. וסטיבולום אט דולור, קראס אגת לקטוס וואל אאוגו וסטיבולום סוליסי טידום בעליק. קונדימנטום קורוס בליקרה, נונסטי קלובר בריקנה סטום, לפריקך תצטריק לרטי. 
-            <br/><br/>
-              סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. 
-            קונדימנטום קורוס בליקרה, נונסטי קלובר בריקנה סטום, לפריקך תצטריק לרטי. <br/><br/> 
-              לורם איפסום דולור סיט אמט, 
-              קולהע צופעט למרקוח איבן איף, ברומץ כלרשט מיחוצים. קלאצי
-            נולום ארווס סאפיאן - פוסיליס קוויס, אקווזמן קוואזי במר מודוף. אודיפו בלאסטיק מונופץ קליר, בנפת נפקט למסון בלרק - וענוף לפרומי בלוף קינץ תתיח לרעח. לת צשחמי 
-            ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס.
-            <br/><br/> 
-              קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף
-              להאמית קרהשק סכעיט דז מא, מנכם למטכין נשואי מנורך.  
-              הועניב היושבב שערש שמחויט - שלושע ותלברו חשלו שעותלשך וחאית נובש ערששף. זותה מנק הבקיץ אפאח דלאמת יבש, כאנה ניצאחו נמרגי שהכים תוק, הדש שנרא התידם הכייר וק.<br/><br/> 
-              הועניב היושבב שערש שמחויט - שלושע ותלברו חשלו שעותלשך וחאית נובש ערששף. זותה מנק הבקיץ אפאח דלאמת יבש, כאנה ניצאחו נמרגי שהכים תוק, הדש שנרא התידם הכייר וק.<br/><br/>  נולום ארווס סאפיאן - פוסיליס קוויס, אקווזמן
-            גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס.<br/><br/>
-              קולהע צופעט למרקוח איבן איף, ברומץ כלרשט מיחוצים. קלאצי
-          
-          
-        </p>
-      )}
-    </div>
+    <Container className="tw-my-2 tw-flex-col tw-border-collapse tw-select-none">
+      <Card className="tw-select-none">
+        <Card.Header
+          onClick={handleClick}
+          className="d-flex tw-justify-between hover:tw-bg-c1"
+        >
+          <div className="">דוגמאות</div>
+          <div className="">(לחץ כדי להרחיב)</div>
+        </Card.Header>
+        <Collapse in={expend}>
+          <div>
+            <Card.Body className="tw-h-fit">
+            משפט <br></br>
+            משפט <br></br>
+            משפט <br></br>
+            משפט <br></br>
+            משפט <br></br>
+            </Card.Body>
+          </div>
+        </Collapse>
+      </Card>
+    </Container>
   );
 }
 

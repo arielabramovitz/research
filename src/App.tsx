@@ -1,16 +1,25 @@
 import './App.css'
+import {React} from "react"
 import ExamplesTab from './components/examples-tab'
 import InstructionsTab from './components/instructions-tab'
 import SurveyForm from './components/survey-form'
+import { Container, Row } from 'react-bootstrap'
+
 
 function App() {
 
   return (
-    <div className='flex flex-col h-screen max-w-full p-8 select-none'>
-      <InstructionsTab></InstructionsTab>
-      <ExamplesTab></ExamplesTab>
-      <SurveyForm></SurveyForm>
-    </div>
+    <Container fluid className='tw-px-16 tw-pt-4'>
+      <Row>
+        <InstructionsTab></InstructionsTab>
+      </Row>
+      <Row>
+        <ExamplesTab></ExamplesTab>
+      </Row>
+      <Row>
+        <SurveyForm></SurveyForm>
+      </Row>
+    </Container>
   )
 }
 

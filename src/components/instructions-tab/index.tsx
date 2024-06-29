@@ -1,5 +1,5 @@
 import { useState, React } from "react";
-import { Collapse, Container, Card} from "react-bootstrap";
+import { Collapse, Container, Card } from "react-bootstrap";
 
 function InstructionsTab() {
   const [expend, setExpend] = useState(false);
@@ -15,7 +15,7 @@ function InstructionsTab() {
           onClick={handleClick}
           className="d-flex tw-justify-between hover:tw-bg-c1"
         >
-          <div className="">דוגמאות</div>
+          <div className="">הוראות</div>
           <div className="">(לחץ כדי להרחיב)</div>
         </Card.Header>
         <Collapse in={expend}>

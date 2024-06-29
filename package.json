@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
+    "bootswatch": "^5.3.3",
     "conllu": "^0.1.2",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.3",
     "react-dom": "^18.2.0",
+    "sass": "^1.77.6",
     "xregexp": "^4.3"
   },
   "devDependencies": {

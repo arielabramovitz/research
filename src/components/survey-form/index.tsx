@@ -1,12 +1,18 @@
-import { ChangeEvent, useEffect, useId, useState, React } from "react";
+import { ChangeEvent, useRef,useEffect, useId, useState, React } from "react";
 import { heads, tails, followUps } from "./questions.ts";
 import { getSentence } from "./mockSentences.ts";
-import { Card, Container, InputGroup } from "react-bootstrap";
+import { Card, Container, Form } from "react-bootstrap";
 
 type QuestionsAndAnswers = {
   question: string;
   answers: string[];
 };
+
+type HeadTailFollowUp = {
+  head: string;
+  tail: string;
+  followUp: string;
+}
 
 function SurveyForm() {
   const questionHeadId = useId();
@@ -14,6 +20,10 @@ function SurveyForm() {
   const [firstSentenceInSet, setFirstSentenceInSet] = useState<string>("");
   const [secondSentenceInSet, setSecondSentenceInSet] = useState<string>("");
   const [thirdSentenceInSet, setThirdSentenceInSet] = useState<string>("");
+  const headRef = useRef<HTMLSelectElement>(null);
+  const tailRef = useRef<HTMLSelectElement>(null);
+  const followUpAnswerRef = useRef<HTMLInputElement>(null);
+
 
   const [questionsAndAnswers, setQuestionsAndAnswers] =
     useState<QuestionsAndAnswers>();
@@ -70,12 +80,12 @@ function SurveyForm() {
         dir="rtl"
         className="bd tw-p-4 tw-w-full tw-h-full tw-overflow-y-auto"
       >
-        <Card.Header className="tw-p-1 bd tw-mb-2">
-          <h1 className="">
+        <Card className="tw-p-1 bd tw-mb-2">
+          <span className="">
             הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br></br> השאלות
             מנוסחות בזמן הווה אך מתייחסות גם לעתיד או עבר.
-          </h1>
-        </Card.Header>
+          </span>
+        </Card>
         <Card.Body>
           <div
             className="tw-h-32 tw-p-4 tw-overflow-y-auto tw-select-text"
@@ -89,20 +99,22 @@ function SurveyForm() {
               <div>
                 <span>{`${firstSentenceInSet} `}</span>
                 <span
-                  className="tw-bg-c2"
+                  className="tw-bg-lapis_lazuli-700 tw-bg-opacity-60"
                   dangerouslySetInnerHTML={{ __html: secondSentenceInSet }}
                 ></span>
                 <span>{` ${thirdSentenceInSet}`}</span>
               </div>
             )}
           </div>
-          <div className="tw-flex-row tw-flex tw-my-2 tw-p-2 tw-border ">
+          <Container className="tw-flex-row tw-flex tw-my-2 tw-p-2">
             <label htmlFor={questionHeadId} hidden>
               בחר רישה לשאלה
             </label>
             <select
+              ref={headRef}
               onChange={handleSelectHead}
-              className="tw-w-[40%] tw-border tw-bordertw- tw-ml-2"
+              className="tw-w-[40%] form-select form-select-sm tw-ml-2"
+              aria-label=".form-select-sm"
               name="questionHead"
             >
               {heads.map((val, i) => (
@@ -115,9 +127,10 @@ function SurveyForm() {
             <label htmlFor={questionTailId} hidden>
               בחר סיפה לשאלה
             </label>
-            <select
+            <select 
+              ref={tailRef}
               onChange={handleSelectTail}
-              className="tw-w-full tw-border-2"
+              className="form-select form-select-sm tw-h-8 tw-w-full tw-border-2"
               name="questionHead"
             >
               {tails.map((val, i) => (
@@ -126,7 +139,7 @@ function SurveyForm() {
                 </option>
               ))}
             </select>
-          </div>
+          </Container>
           {questionHead.length === 0 || questionTail.length === 0 ? (
             <></>
           ) : (
@@ -140,21 +153,23 @@ function SurveyForm() {
             </div>
           )}
           <div className="tw-flex tw-flex-row">
-            {questionType === -1 ? (
+            {questionType === -1 || questionHead.length === 0 ? (
               <></>
             ) : (
               <div className="tw-flex tw-flex-col tw-mr-2 tw-mt-4 tw-w-[50%]">
                 <p>שאלת המשך:</p>
                 <div className="tw-font-bold">{followUps[questionType]}</div>
                 <input
-                  className="tw-outline tw-outline-1 tw-min-w-100 tw-px-2 tw-w-[80%] tw-ml-2 tw-mt-2"
+                  ref={followUpAnswerRef}
+                  type="text"
+                  maxLength={64}
+                  className="form-input form-input-small tw-outline tw-outline-1 tw-min-w-100 tw-px-2 tw-w-[80%] tw-ml-2 tw-mt-2"
                   required
                   value={highlightedAnswer}
                   onChange={(e) => {
                     setHighlightedAnswer(e.target.value);
                   }}
                   placeholder="סמן את התשובה בטקסט או הקלד אותה כאן"
-                  type="text"
                 />
               </div>
             )}

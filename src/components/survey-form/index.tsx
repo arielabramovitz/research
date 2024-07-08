@@ -28,23 +28,16 @@ function SurveyForm() {
     const [questionHead, setQuestionHead] = useState<string>("");
     const [questionTail, setQuestionTail] = useState<string>("");
     const [checked, setChecked] = useState(false);
-    const [tableRows, setTableRows] = useState<TableRow[]>([{
-        questionHead: "מה",
-        questionTail: "אסור\\מותר?",
-        answer: "בדיקה",
-        followupQuestion: "איזו מילה\\מילים הובילו אותך לחשוב על מה שמותר\\אסור?",
-        followupAnswer: "בדיקה"
-    }]);
+    const [tableRows, setTableRows] = useState<TableRow[]>([]);
 
     const handleSelectHead = (event: ChangeEvent<HTMLSelectElement>) => {
         setQuestionHead(event.target.value);
     };
 
     const handleSelectTail = (event: ChangeEvent<HTMLSelectElement>) => {
-        if (event.nativeEvent.target) {
-            console.log(event.nativeEvent.target)
+        if (event.target) {
             const index: number = event.target.selectedIndex;
-            const text: string = event.target[index].text;
+            const text: string = event.target[index].textContent || "";
             const qType = Number.parseInt(event.target.value);
             setQuestionTail(text);
             setFollowUp(followUps[qType]);

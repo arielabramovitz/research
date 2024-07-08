@@ -1,4 +1,3 @@
-// @ts-ignore
 import React from "react"
 import './App.css'
 import ExamplesTab from './components/examples-tab'

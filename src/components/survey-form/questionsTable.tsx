@@ -1,4 +1,3 @@
-// @ts-ignore
 import React from "react";
 import {Button, Table} from "react-bootstrap";
 import {Pencil, Trash} from "react-bootstrap-icons";

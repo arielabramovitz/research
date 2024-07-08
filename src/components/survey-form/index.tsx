@@ -1,4 +1,5 @@
-import React, {ChangeEvent, useEffect, useRef, useState,} from "react";
+/* eslint-disable react/react-in-jsx-scope */
+import {ChangeEvent, useEffect, useRef, useState,} from "react";
 import {heads, tails, followUps} from "./questions.ts";
 import {getSentence} from "./mockSentences.ts";
 import {Alert, Button, Card, Container, Form} from "react-bootstrap";

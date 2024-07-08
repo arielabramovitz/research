@@ -2,3 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+.card {
+    border: black 1px solid;
+}
+
+.card-header {
+    height: 32px
+}
+
+.form-check-input {
+    border: 1px solid rgba(0, 0, 0, 0.95);
+    scale: 0.8;
+}
+
+.form-check-input:focus {
+    border: 1px solid rgba(0, 0, 0, 0.95)
+}
+
+td {
+    font-size: small;
+}
+
+.table-row {
+    white-space: nowrap;
+    background-color: #80cccc;
+}
+
+.fade {
+    -webkit-transition-duration: 3s;
+    transition-duration: 3s;
+}

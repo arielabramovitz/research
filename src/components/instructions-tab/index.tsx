@@ -9,14 +9,14 @@ function InstructionsTab() {
   };
 
   return (
-    <Container className="tw-my-2 tw-flex-col tw-border-collapse tw-select-none">
-      <Card className="tw-select-none">
+    <Container className="h6 tw-my-2 tw-flex-col tw-border-collapse tw-select-none">
+      <Card className={!expend?"tw-transition-all tw-duration-300 hover:tw-scale-[101%] hover:tw-drop-shadow-lg ":""+"tw-select-none"}>
         <Card.Header
           onClick={handleClick}
-          className="d-flex tw-justify-between hover:tw-bg-c1"
+          className="tw-flex tw-justify-between"
         >
-          <div className="">הוראות</div>
-          <div className="">(לחץ כדי להרחיב)</div>
+          <div className="h6">הוראות</div>
+          <div className="h6">(לחץ כדי להרחיב)</div>
         </Card.Header>
         <Collapse in={expend}>
           <div>

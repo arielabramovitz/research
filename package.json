@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,29 +15,29 @@
     "conllu": "^0.1.2",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.3",
+    "react-bootstrap-icons": "^1.11.4",
     "react-dom": "^18.2.0",
     "sass": "^1.77.6",
     "xregexp": "^4.3"
   },
   "devDependencies": {
-    "@eslint/compat": "^1.0.1",
-    "@eslint/js": "^9.3.0",
-    "@types/react": "^18.2.66",
+    "@eslint/compat": "^1.1.0",
+    "@eslint/js": "^9.6.0",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
-    "daisyui": "^4.12.10",
-    "eslint": "^9.3.0",
-    "eslint-plugin-react": "^7.34.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.34.3",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
-    "globals": "^15.2.0",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3",
-    "typescript": "^5.2.2",
-    "typescript-eslint": "^7.9.0",
-    "vite": "^5.2.0"
+    "globals": "^15.8.0",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^7.15.0",
+    "vite": "^5.3.3"
   }
 }

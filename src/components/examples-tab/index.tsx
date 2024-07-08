@@ -91,13 +91,13 @@ function ExamplesTab() {
   };
 
   return (
-    <Container className="tw-my-2 tw-flex-col tw-border-collapse tw-select-none">
+    <Container className="card-cont tw-mb-2 tw-flex-col tw-border-collapse tw-select-none">
       <Card
-        className="tw-select-none"
+        className={!expend?" tw-transition-all tw-duration-300 hover:tw-scale-[101%] hover:tw-drop-shadow-lg ":""+"tw-select-none"}
       >
-        <Card.Header onClick={handleExpend} className="d-flex tw-justify-between">
-          <div className="">דוגמאות</div>
-          <div className="">(לחץ כדי להרחיב)</div>
+        <Card.Header onClick={handleExpend} className="tw-flex tw-justify-between tw-align-middle">
+          <div className="h6">דוגמאות</div>
+          <div className="h6">(לחץ כדי להרחיב)</div>
         </Card.Header>
         <Collapse in={expend}>
           <div>
@@ -107,9 +107,9 @@ function ExamplesTab() {
                 {createExampleButtons()}
               </Container>
               {chosen == -1 ? <></> : (
-                <div className="tw-h-32 tw-bd tw-m-4 tw-select-text tw-overflow-y-auto tw-rounded-md">
+                <Container className="tw-h-32 tw-select-text tw-overflow-y-auto">
                     {generateExamples()}
-                </div>
+                </Container>
               )}
             </div>
         </Card.Body>

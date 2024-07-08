@@ -1,5 +1,6 @@
+// @ts-ignore
+import React from "react"
 import './App.css'
-import {React} from "react"
 import ExamplesTab from './components/examples-tab'
 import InstructionsTab from './components/instructions-tab'
 import SurveyForm from './components/survey-form'

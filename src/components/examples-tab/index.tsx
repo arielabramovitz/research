@@ -59,13 +59,17 @@ function ExamplesTab() {
                             </Container>
                             <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.postPartOne}</h6>
                             <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.prePartTwo}</h6>
-                            <Container className=" tw-my-2">
-                                <span>שאלת המשך: <b>{sentenceSet.followUp[index]}</b></span>
-                                <span><br/>תשובה: </span>
-                                <span className="tw-underline">{sentenceSet.followUpAnswer[index]}</span>
-                            </Container>
-                            <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.postPartTwo}</h6>
-                            <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.additional}</h6>
+                            {sentenceSet.followUp.length===0?<></>:(
+                                <div>
+                                    <Container className=" tw-my-2">
+                                        <span>שאלת המשך: <b>{sentenceSet.followUp[index]}</b></span>
+                                        <span><br/>תשובה: </span>
+                                        <span className="tw-underline">{sentenceSet.followUpAnswer[index]}</span>
+                                    </Container>
+                                    <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.postPartTwo}</h6>
+                                    <h6 className="tw-font-bold tw-opacity-70 tw-mt-4">{sentenceSet.additional}</h6>
+                                </div>
+                            )}
                         </Container>
                     ))}
                 </Container>

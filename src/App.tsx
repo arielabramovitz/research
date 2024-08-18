@@ -9,14 +9,14 @@ import { Container, Row } from 'react-bootstrap'
 function App() {
 
   return (
-    <Container fluid className='tw-px-16 tw-pt-4'>
+    <Container fluid className='tw-flex tw-flex-col tw-h-full tw-px-12 tw-py-8'>
       <Row>
         <InstructionsTab></InstructionsTab>
       </Row>
-      <Row>
+      <Row className="">
         <ExamplesTab></ExamplesTab>
       </Row>
-      <Row>
+      <Row className="">
         <SurveyForm></SurveyForm>
       </Row>
     </Container>

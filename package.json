@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "runapi": "tsc ./src/components/survey-form/api.ts"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.0.0",
     "bootstrap": "^5.3.3",
     "bootswatch": "^5.3.3",
     "react": "^18.2.0",

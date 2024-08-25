@@ -18,6 +18,7 @@
     "react-bootstrap": "^2.10.3",
     "react-bootstrap-icons": "^1.11.4",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.26.1",
     "sass": "^1.77.6",
     "xregexp": "^4.3"
   },

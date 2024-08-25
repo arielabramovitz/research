@@ -1,5 +1,5 @@
-const baseUrl = "https://hujiresearch.azurewebsites.net/api"
-
+// const baseUrl = "https://hujiresearch.azurewebsites.net/api"
+const baseUrl = "http://localhost:7071/api"
 export type SentenceSet = {
     id: string;
     sentences: string[];
@@ -14,12 +14,14 @@ export type ParticipantAnswers = {
 export type ParticipantAnswer = {
     sentenceSetId: string;
     sentences: string[];
-    questions: AnswerPair[];
+    questions: Question[];
 };
 
-export type AnswerPair = {
+export type Question = {
     question: string;
+    answer: string;
     followUp: string;
+    followUpAnswer: string;
 };
 
 
@@ -38,79 +40,8 @@ export async function getSentenceSets(n: number): Promise<SentenceSet[]> {
 }
 
 export async function uploadParticipantAnswers(answers: ParticipantAnswers) {
-    const url = `${baseUrl}/answers/${answers.id}`
-    const prevAnswers = await fetch(url,{method: "GET"}).then((response)=> response.json())
-    console.log(prevAnswers)
-    // let body = answers;
-    // if (prevAnswers) {
-    //     // participant pid already exists, merge their previous answers into the new answers
-    //     body = updateAnswers(prevAnswers, answers);
-    // }
-    // return await fetch(url, {method: "POST", headers:{'Content-Type': 'application/json'}, body: JSON.stringify(body)}).then((response)=>response.status===200)
+    const url = `${baseUrl}/answers/    `
+    return await fetch(url, {method: "POST", mode: "no-cors", headers:{"Content-type": "application/json"}, body: JSON.stringify(answers)}).then((response)=>response.status===200)
 }
 
-// function test() {
-//   const participantAnswers1: ParticipantAnswers = {
-//     id: "1",
-//     answers: [
-//       {
-//         sentenceSetId: "set1",
-//         sentences: ["sentence1", "sentence2"],
-//         questions: [{ question: "q1", followUp: "f1" }],
-//       },
-//       {
-//         sentenceSetId: "set2",
-//         sentences: ["sentence3"],
-//         questions: [{ question: "q2", followUp: "f2" }],
-//       },
-//     ],
-//   };
 
-//   const participantAnswers2: ParticipantAnswers = {
-//     id: "1",
-//     answers: [
-//       {
-//         sentenceSetId: "set1",
-//         sentences: ["sentence4"],
-//         questions: [
-//           { question: "q1", followUp: "f1" },
-//           { question: "q3", followUp: "f3" },
-//         ],
-//       },
-//       {
-//         sentenceSetId: "set3",
-//         sentences: ["sentence5"],
-//         questions: [{ question: "q4", followUp: "f4" }],
-//       },
-//     ],
-//   };
-
-//   const mergedParticipantAnswers = updateAnswers(
-//     participantAnswers1,
-//     participantAnswers2
-//   );
-
-//   console.log("Merged Participant Answers:", mergedParticipantAnswers);
-// }
-
-// test();
-async function test2() {
-    const pid = "1"
-    const participantAnswers: ParticipantAnswers = {
-    id: pid,
-    answers: [
-      {
-        sentenceSetId: "set1",
-        sentences: ["sentence1", "sentence2"],
-        questions: [{ question: "q1", followUp: "f1" }],
-      },
-      {
-        sentenceSetId: "set2",
-        sentences: ["sentence3"],
-        questions: [{ question: "q2", followUp: "f2" }],
-      },
-    ],
-  };
-    const retStatus = await uploadParticipantAnswers(participantAnswers)
-    console.log("Upload status:", retStatus)
-}

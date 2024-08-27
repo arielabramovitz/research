@@ -1,5 +1,4 @@
-// const baseUrl = "https://hujiresearch.azurewebsites.net/api"
-const baseUrl = "http://localhost:7071/api"
+const baseUrl = "https://hujiresearch.azurewebsites.net/api"
 export type SentenceSet = {
     id: string;
     sentences: string[];

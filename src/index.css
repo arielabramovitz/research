@@ -29,6 +29,6 @@ td {
 }
 
 .fade {
-    -webkit-transition-duration: 3s;
-    transition-duration: 3s;
+    -webkit-transition-duration: .25s;
+    transition-duration: .25s;
 }

@@ -4,19 +4,15 @@ import {getSentenceSets, ParticipantAnswer, ParticipantAnswers, SentenceSet, upl
 import {
     Alert,
     Button,
-    ButtonGroup,
     Card,
     Container,
     Form,
-    FormControl,
-    FormGroup,
-    InputGroup,
+    FormGroup, FormLabel,
+    InputGroup, Modal,
     Spinner
 } from "react-bootstrap";
 import QuestionTable from "./questionsTable.tsx";
-import {ChevronLeft, ChevronRight} from "react-bootstrap-icons";
 import {useParams} from 'react-router-dom';
-import {Input} from "postcss";
 
 export type TableRow = {
     setNumber: number,
@@ -29,7 +25,7 @@ export type TableRow = {
 
 function SurveyForm() {
     const params = useParams()
-    let id = "TEST"
+    let id = null
     if (params.id) {
         id = params.id
     }
@@ -38,11 +34,13 @@ function SurveyForm() {
     const headRef = useRef<HTMLSelectElement | null>(null);
     const tailRef = useRef<HTMLSelectElement | null>(null);
     const followUpAnswerRef = useRef<HTMLTextAreaElement | null>(null);
+    const tailCompletionRef = useRef<HTMLTextAreaElement | null>(null);
+
     const [sentenceSets, setSentenceSets] = useState<SentenceSet[]>([]);
-    const [currSet, setCurrSet] = useState<number>(0);
+    const [currSet, setCurrSet] = useState<number>(-1);
     const [requiresCompletion, setRequiresCompletion] = useState<boolean>(false);
 
-    const [followUpWidth, setFollowUpWidth] = useState<number>(38)
+    const [followUpAnswerChecked, setFollowUpAnswerChecked] = useState<number>(0);
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [highlightedAnswer, setHighlightedAnswer] = useState("");
     const [boldedVerb, setBoldedVerb] = useState("");
@@ -52,6 +50,8 @@ function SurveyForm() {
     const [checked, setChecked] = useState(false);
     const [tableRows, setTableRows] = useState<TableRow[]>([]);
     const [tailCompletion, setTailCompletion] = useState<string>("");
+    const [boldedVerbsInds, setBoldedVerbsInds] = useState<number[]>([]);
+    const [showFinishModal, setShowFinishModal] = useState<boolean>(false)
 
     const handleSelectHead = (event: ChangeEvent<HTMLSelectElement>) => {
         setQuestionHead(event.target.value);
@@ -72,6 +72,18 @@ function SurveyForm() {
         }
     };
 
+    const handleNextSet = async ()=>{
+        if (currSet >= sentenceSets.length-1) {
+            await getSentenceSets(1).then((ret:SentenceSet[])=>{
+                setSentenceSets((prevState: SentenceSet[])=>{
+                    return [...prevState, ...ret]
+                })
+            })
+        }
+        setCurrSet(currSet+1)
+
+    }
+
     const handleTextSelect = (e: React.MouseEvent<HTMLElement>) => {
         const highlighted = window.getSelection()?.toString();
         if (highlighted) {
@@ -80,17 +92,18 @@ function SurveyForm() {
         } else {
             setHighlightedAnswer("")
         }
-        // followUpAnswerRef.current!.style.width = `${inp.length > 32 ? inp.length : 32}ch`
-        // if (input) {
-        //     input.style.width = `${inp.length > 32 ? inp.length : 32}ch`
-        //
-        // }
+
     };
 
     const handleFollowUpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.target.style.height = 'auto';
         e.target.style.height = e.target.scrollHeight + 'px';
         setHighlightedAnswer(e.target.value)
+    }
+
+    const handleTailCompletionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
+        e.target.value += "?"
+        setTailCompletion(e.target.value)
     }
 
     const handleEditClick = (i: number) => {
@@ -113,28 +126,33 @@ function SurveyForm() {
     };
 
     const handleFinishClick = () => {
-        const userAnswers: ParticipantAnswers = {id: id || "", answers: []}
-        for (const row of tableRows) {
-            userAnswers.answers[row.setNumber - 1] = {
-                sentenceSetId: sentenceSets[row.setNumber - 1].id,
-                sentences: sentenceSets[row.setNumber - 1].sentences,
-                questions: [
-                    ...userAnswers.answers[row.setNumber - 1]?.questions || [],
-                    {
-                        question: `${row.questionHead} ${row.questionTail}`,
-                        answer: row.answer,
-                        followUp: row.followupQuestion,
-                        followUpAnswer: row.followupAnswer || ""
-                    }
-                ]
+        if (id) {
+            const userAnswers: ParticipantAnswers = {id: id, answers: []}
+
+            for (const row of tableRows) {
+                userAnswers.answers[row.setNumber - 1] = {
+                    sentenceSetId: sentenceSets[row.setNumber - 1].id,
+                    sentences: sentenceSets[row.setNumber - 1].sentences,
+                    questions: [
+                        ...userAnswers.answers[row.setNumber - 1]?.questions || [],
+                        {
+                            question: `${row.questionHead} ${row.questionTail}`,
+                            answer: row.answer,
+                            followUp: row.followupQuestion,
+                            followUpAnswer: row.followupAnswer || ""
+                        }
+                    ]
+                }
             }
+            userAnswers.answers = userAnswers.answers.filter(item => item !== undefined)
+            uploadParticipantAnswers(userAnswers).then(()=>{})
+            return
         }
-        userAnswers.answers = userAnswers.answers.filter(item => item !== undefined)
-        uploadParticipantAnswers(userAnswers)
+        alert("Id wasn't passed")
+
     }
 
     const handleSaveClick = () => {
-        console.log(followUp)
         if (checked && ((followUp.length > 0 && highlightedAnswer.length !== 0) || followUp.length === 0)) {
             setTableRows((prevRows: TableRow[]) => {
                 const newRows = [
@@ -152,7 +170,7 @@ function SurveyForm() {
 
                 return newRows
             });
-
+            setFollowUpAnswerChecked(0)
             setChecked(false);
             setQuestionTail("");
             setQuestionHead("");
@@ -171,12 +189,26 @@ function SurveyForm() {
     };
 
     const setVerb = () => {
-        if (sentenceSets[currSet]) {
-            if (sentenceSets[currSet].verbs.length > 0) {
-                const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
-                setBoldedVerb(sentenceSets[currSet].verbs[ind])
+      if (sentenceSets[currSet]) {
+        if (sentenceSets[currSet].verbs.length > 0) {
+          const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
+          const verb = sentenceSets[currSet].verbs[ind];
+          const boldedVerb = `<b>${verb}</b>`; // Create a bolded version of the verb
+
+          // Create a new array of sentences with the bolded verb
+          const newSentences = sentenceSets[currSet].sentences.map((sentence, index) => {
+            if (index === 1) {
+              return sentence.replace(verb, boldedVerb);
             }
+            return sentence;
+          });
+
+          // Update the sentenceSets array with the new sentences
+          const newSentenceSets = [...sentenceSets];
+          newSentenceSets[currSet].sentences = newSentences;
+          setSentenceSets(newSentenceSets);
         }
+      }
     }
 
     const handleSetChange = (isRight: boolean) => {
@@ -187,6 +219,7 @@ function SurveyForm() {
         setCurrSet(newInd)
         setVerb()
     }
+
 
     useEffect(() => {
         setBoldedVerb(sentenceSets[currSet]?.verbs[Math.floor(Math.random() * sentenceSets[currSet].verbs.length)])
@@ -219,20 +252,20 @@ function SurveyForm() {
     }, []);
 
     return (
-        <Container fluid className="tw-select-none tw-h-full tw-w-full tw-pb-8">
-            <Card dir="rtl" className="bd tw-p-4 tw-w-full tw-h-full">
-                <div className="tw-flex tw-flex-col tw-self-end ">
-                    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">
-                        <Button size="sm" className="tw-flex tw-justify-center tw-align-middle"
-                                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight
-                            className=""/></Button>
-                        <div
-                            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>
-                        <Button className="tw-flex  tw-justify-center" onClick={() => handleSetChange(true)} size="sm"
-                                variant="outline-dark"><ChevronLeft/></Button>
-                    </ButtonGroup>
-                </div>
-                <Container className="tw-h-full tw-p-1 tw-mb-2">
+        <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8">
+            <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
+                {/*<div className="tw-flex tw-flex-col tw-self-end ">*/}
+                {/*    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">*/}
+                {/*        <Button size="sm" className="tw-flex tw-justify-center tw-align-middle"*/}
+                {/*                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight*/}
+                {/*            className=""/></Button>*/}
+                {/*        <div*/}
+                {/*            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>*/}
+                {/*        <Button className="tw-flex  tw-justify-center" onClick={() => handleSetChange(true)} size="sm"*/}
+                {/*                variant="outline-dark"><ChevronLeft/></Button>*/}
+                {/*    </ButtonGroup>*/}
+                {/*</div>*/}
+                <Container className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
 
 
                     <div className="tw-pb-8">
@@ -299,30 +332,39 @@ function SurveyForm() {
                         <></>
                     ) : (
                         <Container className="tw-flex tw-flex-col tw-px-0 tw-pt-4">
-                            <div className="flex">
-                                <span className="">השאלה שנוצרה: <b>{questionHead + " " + questionTail}</b></span>
+                            <div className="tw-flex tw-flex-col">
+                                <span className="">השאלה שנוצרה: <b>{`${questionHead} ${requiresCompletion?questionTail.slice(0,-3):questionTail}`}</b></span>
                                 {(!requiresCompletion ? <></> : (
-                                    <>
+                                    <div className="tw-flex tw-flex-row tw-w-64">
                                         &nbsp;
-                                        <input
-                                            type="text"
-                                            maxLength={64}
-                                            id="tailCompletion"
-                                            className="tw-min-w-fit tw-w-auto tw-px-1 tw-mt-2 tw-border-0 tw-underline"
-                                            required
+                                        {/*<input*/}
+                                        {/*    type="textarea"*/}
+                                        {/*    maxLength={64}*/}
+                                        {/*    id="tailCompletion"*/}
+                                        {/*    className="tw-min-w-fit tw-w-auto tw-px-1 tw-mt-2 tw-border-0 tw-underline"*/}
+                                        {/*    required*/}
+                                        {/*    value={tailCompletion}*/}
+                                        {/*    onChange={(e) => {*/}
+                                        {/*        setTailCompletion(e.target.value);*/}
+                                        {/*    }}*/}
+                                        {/*    placeholder="המשך\י את השאלה פה"*/}
+                                        {/*/>*/}
+                                        <Form.Control
+                                            as="textarea"
+                                            className="tw-mr-1 tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                            placeholder="השלימו את השאלה פה"
                                             value={tailCompletion}
-                                            onChange={(e) => {
-                                                setTailCompletion(e.target.value);
-                                            }}
-                                            placeholder="השלם את השאלה פה"
+                                            ref={tailCompletionRef}
+
+                                            onChange={(e)=>{setTailCompletion(e.target.value)}}
+                                            rows={1}
                                         />
-                                        ?
-                                    </>
+
+                                    </div>
 
                                 ))}
                             </div>
-                            <span className="tw-pt-2">התשובה: <b>{boldedVerb}</b>
-                                        </span>
+                            <span className="tw-pt-2">התשובה: <b>{boldedVerb}</b></span>
                             <label className="tw-mt-2">
                                 <Form.Check
                                     onClick={() => {
@@ -336,24 +378,25 @@ function SurveyForm() {
                             </label>
                         </Container>
                     )}
-                    <div className="">
+                    <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
                         {followUp.length === 0 || questionHead.length === 0 ? (
                             <></>
                         ) : (
                             <div className="tw-pt-8 tw-flex tw-flex-col tw-mx-0 tw-h-full tw-w-full">
                                 <div className="tw-border-t-2 tw-border-[#000] tw-border-opacity-25 tw-pt-8"></div>
-                                <div className="flex">
+                                <div className="">
                                     <span className="tw-mt-4">שאלת המשך: </span>
                                     <span className="h6 tw-py-4 tw-font-bold">{followUp}</span>
                                 </div>
-                                <FormGroup  className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+
+                                <FormGroup className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                     <InputGroup
                                         className="tw-flex tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                        <InputGroup.Text>התשובה:</InputGroup.Text>
+                                        <FormLabel className="tw-my-2">התשובה: </FormLabel>
                                         <Form.Control
                                             as="textarea"
-                                            className="tw-mr-1 tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
-                                            placeholder="סמן את התשובה בטקסט או הקלד אותה כאן"
+                                            className="tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                            placeholder="סמנו את התשובה בטקסט או הקלידו אותה כאן"
                                             ref={followUpAnswerRef}
                                             value={highlightedAnswer}
                                             onChange={handleFollowUpChange}
@@ -362,28 +405,57 @@ function SurveyForm() {
 
                                         </Form.Control>
                                     </InputGroup>
+
                                 </FormGroup>
+                                <Container className="tw-px-0">
+                                    <Form.Check
+                                        onClick={() => {setFollowUpAnswerChecked(1)}}
+                                        required
+                                        className=""
+                                        name="followUpAnswerCheck"
+                                        type="radio"
+                                        inline
+                                        label="התשובה עונה על השאלה"
+                                    />
 
-
+                                    <Form.Check
+                                        onClick={() => {setFollowUpAnswerChecked(2)}}
+                                        required
+                                        className=""
+                                        name="followUpAnswerCheck"
+                                        type="radio"
+                                        inline
+                                        label="אין בטקסט תשובה לשאלת ההמשך"
+                                    />
+                                </Container>
                             </div>
 
                         )}
 
-                    </div>
+                    </Container>
+                    {questionHead.length === 0 || questionTail.length === 0 ? <></> :
+                        <div className="tw-flex tw-w-full tw-justify-between">
+                            <Button
+                                onClick={() => handleSaveClick()}
+                                size="sm"
+                                disabled={!checked && followUpAnswerChecked>0}
+                                variant="outline-secondary"
+                                className="tw-w-fit  tw-ml-2">
+                                שמור והוסף שאלה
+                            </Button>
+                            <Button
+                                onClick={() => handleNextSet()}
+                                size="sm"
+                                disabled={!checked}
+                                variant="outline-primary"
+                                className=" tw-w-fit tw-ml-2">
+                                שמור והמשך לסט המשפטים הבא
+                            </Button>
+                        </div>
 
+                    }
                 </Container>
-                {questionHead.length === 0 || questionTail.length === 0 ? <></> :
-                    <div className="tw-align-bottom tw-w-full">
-                        <Button
-                            onClick={() => handleSaveClick()}
-                            size="sm"
-                            variant="outline-secondary"
-                            className="tw-justify-end tw-align-bottom tw-w-16 tw-mt-4 tw-ml-2">
-                            שמור
-                        </Button>
-                    </div>
 
-                }
             </Card>
             {tableRows.length === 0 ? (
                 <></>
@@ -410,9 +482,23 @@ function SurveyForm() {
                     onClose={() => {
                         setShowAlert(false);
                     }}>
-                    אנא ודא\י שהתשובה עונה על השאלה ושענית על שאלת ההמשך
+                    נא לוודא שהתשובה עונה על השאלה ושענית על שאלת ההמשך
                 </Alert>
             )}
+            <Modal
+                show={showFinishModal}
+                onExit={()=>{setShowFinishModal(false)}}
+            >
+                <Modal.Dialog>
+                    <Modal.Header closeButton>
+                        <h4>האם את\ה בטוח\ה שסיימת?</h4>
+                    </Modal.Header>
+                    <Modal.Footer>
+                        <Button onClick={handleFinishClick}>הגש</Button>
+                        <Button onClick={()=>{setShowFinishModal(false)}}>בטל</Button>
+                    </Modal.Footer>
+                </Modal.Dialog>
+            </Modal>
 
         </Container>
 

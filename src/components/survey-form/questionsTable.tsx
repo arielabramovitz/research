@@ -14,15 +14,15 @@ export default function QuestionTable(props:TableProps) {
     const fillRows = () => {
         return tableRows.map((row: TableRow, i: number) => (
             <tr className="" key={i}>
-                <td className="tw-w-4 tw-align-middle">
-                    <Button
-                        className="tw-fill-[#0000003b] hover:tw-fill-[#000]"
-                        variant="outline"
-                        onClick={() => handleEditClick(i)}
-                    >
-                        <Pencil/>
-                    </Button>
-                </td>
+                {/*<td className="tw-w-4 tw-align-middle">*/}
+                {/*    <Button*/}
+                {/*        className="tw-fill-[#0000003b] hover:tw-fill-[#000]"*/}
+                {/*        variant="outline"*/}
+                {/*        onClick={() => handleEditClick(i)}*/}
+                {/*    >*/}
+                {/*        <Pencil/>*/}
+                {/*    </Button>*/}
+                {/*</td>*/}
                 <td className="tw-w-4 tw-align-middle">
                     <Button
                         className="tw-fill-[#0000003b] hover:tw-fill-[#000]"
@@ -46,12 +46,12 @@ export default function QuestionTable(props:TableProps) {
             className="tw-mt-4 tw-text-center"
             size="sm"
             bordered
-            responsive
+
             hover
         >
             <thead>
                 <tr className="h6">
-                    <th></th>
+                    {/*<th></th>*/}
                     <th></th>
                     <th>סט</th>
                     <th>שאלה</th>

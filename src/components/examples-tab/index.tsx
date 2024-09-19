@@ -26,13 +26,9 @@ function ExamplesTab() {
                 <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
 
                     <Container key={i} className="tw-flex tw-flex-col tw-w-full tw-h-full tw-p-1 tw-mb-2">
-                        <span className=" tw-font-bold tw-text-[#006D77]">{sentenceSet.preText}</span>
-                        <div className="tw-pb-8">
-                            הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br></br> השאלות מנוסחות בזמן הווה אך
-                            מתייחסות גם לעתיד
-                            או עבר.
-                        </div>
-                        <Card className="bd tw-h-32 tw-p-4 tw-overflow-y-auto tw-select-text">
+                        <span className="tw-mb-4  tw-text-[#006D77]">{sentenceSet.preText}</span>
+
+                        <Card className="bd tw-h-fit tw-p-4 tw-overflow-y-auto tw-select-text">
                             <div className="">
                                 <div>
                                     <span>{`${sentenceSet.first} `}</span>
@@ -71,32 +67,36 @@ function ExamplesTab() {
                                             </option>
                                         </Form.Select>
                                     </Container>
-                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.postText}</span>
+                                    <span className="tw-text-[#006D77]">{sentenceSet.postText}</span>
 
                                     <span className="tw-underline tw-font-bold">שלב ראשון:</span>
 
-                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.prePartOne[ind]}</span>
+                                    <span
+                                        className="tw-text-[#006D77]">{sentenceSet.prePartOne[ind]}</span>
                                     <div className="tw-flex tw-flex-col tw-px-0">
 
                                         <div className="tw-flex tw-w-full">
 
                                             {(!sentenceSet.requiresCompletion[ind] ? <>
-                                                <span className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind]?sentenceSet.tail[ind].slice(0,-3):sentenceSet.tail[ind]}`}</b></span>
+                                                <span
+                                                    className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -3) : sentenceSet.tail[ind]}`}</b></span>
 
                                             </> : (
 
-                                                <FormGroup className="tw-w-full tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                                <FormGroup
+                                                    className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                                     <InputGroup
                                                         className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                                        <Form.Label className="tw-my-0">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind]?sentenceSet.tail[ind].slice(0,-3):sentenceSet.tail[ind]}`}</b>
+                                                        <Form.Label className="tw-my-0">השאלה
+                                                            שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -3) : sentenceSet.tail[ind]}`}</b>
                                                         </Form.Label>
                                                         <Form.Control
                                                             as="textarea"
+                                                            readOnly
                                                             className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
                                                             placeholder="השלימו את השאלה פה"
                                                             rows={1}
-                                                            size="sm"
-                                                            value={sentenceSet.completion===undefined ? "" : sentenceSet.completion[ind]}
+                                                            value={sentenceSet.completion === undefined ? "" : sentenceSet.completion[ind]}
                                                         >
 
                                                         </Form.Control>
@@ -105,11 +105,11 @@ function ExamplesTab() {
                                                 </FormGroup>
 
 
-
                                             ))}
                                         </div>
                                         <span className="tw-pt-2">התשובה: <b>{sentenceSet.verb}</b></span>
-                                        <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.postPartOne[ind]}</span>
+                                        <span
+                                            className="tw-text-[#006D77]">{sentenceSet.postPartOne[ind]}</span>
 
                                         <label className="tw-mt-2">
                                             <Form.Check
@@ -123,7 +123,8 @@ function ExamplesTab() {
                                         </label>
 
                                     </div>
-                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.betweenParts[ind]}</span>
+                                    <span
+                                        className="tw-text-[#006D77]">{sentenceSet.betweenParts[ind]}</span>
 
                                     <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
                                         {sentenceSet.followUp[ind]?.length === 0 ?
@@ -134,7 +135,8 @@ function ExamplesTab() {
                                                     <div
                                                         className="tw-border-t-2 tw-border-[#000] tw-border-opacity-25 tw-pt-8"></div>
                                                     <span className="tw-underline tw-font-bold tw-pb-2">שלב שני:</span>
-                                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.prePartTwo[ind]}</span>
+                                                    <span
+                                                        className="tw-text-[#006D77]">{sentenceSet.prePartTwo[ind]}</span>
                                                     <div className="">
                                                         <span className="tw-mt-4">שאלת המשך: </span>
                                                         <span
@@ -158,7 +160,8 @@ function ExamplesTab() {
                                                         </InputGroup>
 
                                                     </FormGroup>
-                                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.postPartTwo}</span>
+                                                    <span
+                                                        className="tw-text-[#006D77]">{sentenceSet.postPartTwo[ind]}</span>
 
                                                     <Container className="tw-px-0">
                                                         <Form.Check
@@ -185,7 +188,8 @@ function ExamplesTab() {
                                                 </div>
 
                                             )}
-                                    <span className="tw-font-bold tw-text-[#006D77]">{sentenceSet.additional[ind]}</span>
+                                        <span
+                                            className="tw-text-[#006D77]">{sentenceSet.additional[ind]}</span>
 
                                     </Container>
                                     <div

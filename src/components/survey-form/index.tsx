@@ -72,15 +72,15 @@ function SurveyForm() {
         }
     };
 
-    const handleNextSet = async ()=>{
-        if (currSet >= sentenceSets.length-1) {
-            await getSentenceSets(1).then((ret:SentenceSet[])=>{
-                setSentenceSets((prevState: SentenceSet[])=>{
+    const handleNextSet = async () => {
+        if (currSet >= sentenceSets.length - 1) {
+            await getSentenceSets(1).then((ret: SentenceSet[]) => {
+                setSentenceSets((prevState: SentenceSet[]) => {
                     return [...prevState, ...ret]
                 })
             })
         }
-        setCurrSet(currSet+1)
+        setCurrSet(currSet + 1)
 
     }
 
@@ -101,7 +101,7 @@ function SurveyForm() {
         setHighlightedAnswer(e.target.value)
     }
 
-    const handleTailCompletionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)=>{
+    const handleTailCompletionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.target.value += "?"
         setTailCompletion(e.target.value)
     }
@@ -145,7 +145,8 @@ function SurveyForm() {
                 }
             }
             userAnswers.answers = userAnswers.answers.filter(item => item !== undefined)
-            uploadParticipantAnswers(userAnswers).then(()=>{})
+            uploadParticipantAnswers(userAnswers).then(() => {
+            })
             return
         }
         alert("Id wasn't passed")
@@ -160,7 +161,7 @@ function SurveyForm() {
                     {
                         setNumber: currSet + 1,
                         questionHead: questionHead,
-                        questionTail: questionTail,
+                        questionTail: !requiresCompletion?questionTail:questionTail.slice(0,-3) + " " + tailCompletion,
                         answer: boldedVerb,
                         followupQuestion: followUp,
                         followupAnswer: highlightedAnswer,
@@ -170,6 +171,7 @@ function SurveyForm() {
 
                 return newRows
             });
+            setTailCompletion("")
             setFollowUpAnswerChecked(0)
             setChecked(false);
             setQuestionTail("");
@@ -189,26 +191,26 @@ function SurveyForm() {
     };
 
     const setVerb = () => {
-      if (sentenceSets[currSet]) {
-        if (sentenceSets[currSet].verbs.length > 0) {
-          const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
-          const verb = sentenceSets[currSet].verbs[ind];
-          const boldedVerb = `<b>${verb}</b>`; // Create a bolded version of the verb
+        if (sentenceSets[currSet]) {
+            if (sentenceSets[currSet].verbs.length > 0) {
+                const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
+                const verb = sentenceSets[currSet].verbs[ind];
+                const boldedVerb = `<b>${verb}</b>`; // Create a bolded version of the verb
 
-          // Create a new array of sentences with the bolded verb
-          const newSentences = sentenceSets[currSet].sentences.map((sentence, index) => {
-            if (index === 1) {
-              return sentence.replace(verb, boldedVerb);
+                // Create a new array of sentences with the bolded verb
+                const newSentences = sentenceSets[currSet].sentences.map((sentence, index) => {
+                    if (index === 1) {
+                        return sentence.replace(verb, boldedVerb);
+                    }
+                    return sentence;
+                });
+
+                // Update the sentenceSets array with the new sentences
+                const newSentenceSets = [...sentenceSets];
+                newSentenceSets[currSet].sentences = newSentences;
+                setSentenceSets(newSentenceSets);
             }
-            return sentence;
-          });
-
-          // Update the sentenceSets array with the new sentences
-          const newSentenceSets = [...sentenceSets];
-          newSentenceSets[currSet].sentences = newSentences;
-          setSentenceSets(newSentenceSets);
         }
-      }
     }
 
     const handleSetChange = (isRight: boolean) => {
@@ -251,6 +253,18 @@ function SurveyForm() {
         }
     }, []);
 
+    function disableSaveButton() {
+        if (checked) {
+            if (requiresCompletion && tailCompletion.length === 0) {
+                return true
+            }
+            if ((followUpAnswerChecked === 1 && followUp.length === 0) || (followUpAnswerChecked===2 && followUp.length >0)) {
+                return false
+            }
+        }
+        return true
+    }
+
     return (
         <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8">
             <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
@@ -275,7 +289,7 @@ function SurveyForm() {
                     </div>
 
 
-                    <Card className="bd tw-h-32 tw-p-4 tw-overflow-y-auto tw-select-text" onMouseUp={handleTextSelect}>
+                    <Card className="bd tw-h-fit tw-p-4 tw-overflow-y-auto tw-select-text" onMouseUp={handleTextSelect}>
 
                         {sentenceSets.length === 0 ? (
                             <div className="tw-flex tw-items-center tw-justify-center">
@@ -333,10 +347,10 @@ function SurveyForm() {
                     ) : (
                         <Container className="tw-flex tw-flex-col tw-px-0 tw-pt-4">
                             <div className="tw-flex tw-flex-col">
-                                <span className="">השאלה שנוצרה: <b>{`${questionHead} ${requiresCompletion?questionTail.slice(0,-3):questionTail}`}</b></span>
-                                {(!requiresCompletion ? <></> : (
-                                    <div className="tw-flex tw-flex-row tw-w-64">
-                                        &nbsp;
+                                {(!requiresCompletion ? <>
+                                    <span className="">השאלה שנוצרה: <b>{`${questionHead} ${questionTail}`}</b></span>
+                                </> : (
+                                    <div className="tw-flex tw-flex-row tw-w-full">
                                         {/*<input*/}
                                         {/*    type="textarea"*/}
                                         {/*    maxLength={64}*/}
@@ -349,16 +363,26 @@ function SurveyForm() {
                                         {/*    }}*/}
                                         {/*    placeholder="המשך\י את השאלה פה"*/}
                                         {/*/>*/}
-                                        <Form.Control
-                                            as="textarea"
-                                            className="tw-mr-1 tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
-                                            placeholder="השלימו את השאלה פה"
-                                            value={tailCompletion}
-                                            ref={tailCompletionRef}
+                                        <FormGroup
+                                            className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                            <InputGroup
+                                                className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
-                                            onChange={(e)=>{setTailCompletion(e.target.value)}}
-                                            rows={1}
-                                        />
+                                                <Form.Label className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -3)}`}</Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                                    placeholder="השלימו את השאלה פה"
+                                                    value={tailCompletion}
+                                                    ref={tailCompletionRef}
+
+                                                    onChange={(e) => {
+                                                        setTailCompletion(e.target.value)
+                                                    }}
+                                                    rows={1}
+                                                />
+                                            </InputGroup>
+                                        </FormGroup>
 
                                     </div>
 
@@ -389,7 +413,8 @@ function SurveyForm() {
                                     <span className="h6 tw-py-4 tw-font-bold">{followUp}</span>
                                 </div>
 
-                                <FormGroup className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                <FormGroup
+                                    className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                     <InputGroup
                                         className="tw-flex tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                         <FormLabel className="tw-my-2">התשובה: </FormLabel>
@@ -409,7 +434,9 @@ function SurveyForm() {
                                 </FormGroup>
                                 <Container className="tw-px-0">
                                     <Form.Check
-                                        onClick={() => {setFollowUpAnswerChecked(1)}}
+                                        onClick={() => {
+                                            setFollowUpAnswerChecked(1)
+                                        }}
                                         required
                                         className=""
                                         name="followUpAnswerCheck"
@@ -419,7 +446,9 @@ function SurveyForm() {
                                     />
 
                                     <Form.Check
-                                        onClick={() => {setFollowUpAnswerChecked(2)}}
+                                        onClick={() => {
+                                            setFollowUpAnswerChecked(2)
+                                        }}
                                         required
                                         className=""
                                         name="followUpAnswerCheck"
@@ -438,7 +467,7 @@ function SurveyForm() {
                             <Button
                                 onClick={() => handleSaveClick()}
                                 size="sm"
-                                disabled={!checked && followUpAnswerChecked>0}
+                                disabled={disableSaveButton()}
                                 variant="outline-secondary"
                                 className="tw-w-fit  tw-ml-2">
                                 שמור והוסף שאלה
@@ -487,7 +516,9 @@ function SurveyForm() {
             )}
             <Modal
                 show={showFinishModal}
-                onExit={()=>{setShowFinishModal(false)}}
+                onExit={() => {
+                    setShowFinishModal(false)
+                }}
             >
                 <Modal.Dialog>
                     <Modal.Header closeButton>
@@ -495,7 +526,9 @@ function SurveyForm() {
                     </Modal.Header>
                     <Modal.Footer>
                         <Button onClick={handleFinishClick}>הגש</Button>
-                        <Button onClick={()=>{setShowFinishModal(false)}}>בטל</Button>
+                        <Button onClick={() => {
+                            setShowFinishModal(false)
+                        }}>בטל</Button>
                     </Modal.Footer>
                 </Modal.Dialog>
             </Modal>

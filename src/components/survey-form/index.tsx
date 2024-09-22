@@ -12,7 +12,7 @@ import {
     Spinner
 } from "react-bootstrap";
 import QuestionTable from "./questionsTable.tsx";
-import {useParams} from 'react-router-dom';
+import {Params, useParams, useSearchParams} from 'react-router-dom';
 
 export type TableRow = {
     setNumber: number,
@@ -24,11 +24,8 @@ export type TableRow = {
 };
 
 function SurveyForm() {
-    const params = useParams()
-    let id = null
-    if (params.id) {
-        id = params.id
-    }
+    const [params] = useSearchParams();
+    const id = params.get('id');
 
     const tailCompletionInd = 9;
     const headRef = useRef<HTMLSelectElement | null>(null);
@@ -109,7 +106,7 @@ function SurveyForm() {
     const handleEditClick = (i: number) => {
         const row = tableRows[i]
         const newRows = tableRows.filter((_: any, j: number) => j !== i);
-        localStorage.setItem("tableRows", JSON.stringify(newRows))
+        sessionStorage.setItem("tableRows", JSON.stringify(newRows))
         setTableRows(newRows);
         setCurrSet(row.setNumber)
         setQuestionTail(row.questionTail);
@@ -121,7 +118,7 @@ function SurveyForm() {
 
     const handleDeleteClick = (i: number) => {
         const newRows = tableRows.filter((_: any, j: number) => j !== i);
-        localStorage.setItem("tableRows", JSON.stringify(newRows))
+        sessionStorage.setItem("tableRows", JSON.stringify(newRows))
         setTableRows(newRows)
     };
 
@@ -154,40 +151,34 @@ function SurveyForm() {
     }
 
     const handleSaveClick = () => {
-        if (checked && ((followUp.length > 0 && highlightedAnswer.length !== 0) || followUp.length === 0)) {
-            setTableRows((prevRows: TableRow[]) => {
-                const newRows = [
-                    ...prevRows,
-                    {
-                        setNumber: currSet + 1,
-                        questionHead: questionHead,
-                        questionTail: !requiresCompletion?questionTail:questionTail.slice(0,-3) + " " + tailCompletion,
-                        answer: boldedVerb,
-                        followupQuestion: followUp,
-                        followupAnswer: highlightedAnswer,
-                    },
-                ];
-                localStorage.setItem("tableRows", JSON.stringify(newRows))
+        setTableRows((prevRows: TableRow[]) => {
+            const newRows = [
+                ...prevRows,
+                {
+                    setNumber: currSet + 1,
+                    questionHead: questionHead,
+                    questionTail: !requiresCompletion ? questionTail : questionTail.slice(0, -3) + " " + tailCompletion,
+                    answer: boldedVerb,
+                    followupQuestion: followUp,
+                    followupAnswer: highlightedAnswer,
+                },
+            ];
+            sessionStorage.setItem("tableRows", JSON.stringify(newRows))
 
-                return newRows
-            });
-            setTailCompletion("")
-            setFollowUpAnswerChecked(0)
-            setChecked(false);
-            setQuestionTail("");
-            setQuestionHead("");
-            setFollowUp("");
-            setHighlightedAnswer("");
-            if (headRef.current && tailRef.current && followUpAnswerRef.current) {
-                headRef.current.value = "";
-                tailRef.current.value = "";
-            }
-        } else {
-            setShowAlert(true);
-            window.setTimeout(() => {
-                setShowAlert(false);
-            }, 3000);
+            return newRows
+        });
+        setTailCompletion("")
+        setFollowUpAnswerChecked(0)
+        setChecked(false);
+        setQuestionTail("");
+        setQuestionHead("");
+        setFollowUp("");
+        setHighlightedAnswer("");
+        if (headRef.current && tailRef.current && followUpAnswerRef.current) {
+            headRef.current.value = "";
+            tailRef.current.value = "";
         }
+
     };
 
     const setVerb = () => {
@@ -195,9 +186,8 @@ function SurveyForm() {
             if (sentenceSets[currSet].verbs.length > 0) {
                 const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
                 const verb = sentenceSets[currSet].verbs[ind];
-                const boldedVerb = `<b>${verb}</b>`; // Create a bolded version of the verb
+                const boldedVerb = `<b>${verb}</b>`;
 
-                // Create a new array of sentences with the bolded verb
                 const newSentences = sentenceSets[currSet].sentences.map((sentence, index) => {
                     if (index === 1) {
                         return sentence.replace(verb, boldedVerb);
@@ -213,13 +203,16 @@ function SurveyForm() {
         }
     }
 
-    const handleSetChange = (isRight: boolean) => {
-        let newInd = (currSet + 1) % (sentenceSets.length)
-        if (isRight) {
-            newInd = (currSet + sentenceSets.length - 1) % (sentenceSets.length)
+    const handleDisabledSave = () => {
+        if (checked && (!requiresCompletion || (requiresCompletion && tailCompletion.length > 0))) {
+            if (followUp.length > 0) {
+                if ((followUpAnswerChecked === 1 && highlightedAnswer.length === 0) || (followUpAnswerChecked === 2 && highlightedAnswer.length > 0)) {
+                    return true;
+                }
+            }
+            return false;
         }
-        setCurrSet(newInd)
-        setVerb()
+        return true;
     }
 
 
@@ -229,9 +222,9 @@ function SurveyForm() {
 
     useEffect(() => {
         const retrieve = async () => {
-            const ret = getSentenceSets(3).then((ret: SentenceSet[]) => {
+            const ret = getSentenceSets(30).then((ret: SentenceSet[]) => {
                 load(ret)
-                localStorage.setItem("sentenceSets", JSON.stringify(ret))
+                sessionStorage.setItem("sentenceSets", JSON.stringify(ret))
                 return ret
             })
         }
@@ -240,9 +233,9 @@ function SurveyForm() {
             setCurrSet(0)
             setVerb()
         }
-
-        const cachedSets = localStorage.getItem('sentenceSets');
-        const cachedTable = localStorage.getItem("tableRows")
+        console.log(sentenceSets[currSet])
+        const cachedSets = sessionStorage.getItem('sentenceSets');
+        const cachedTable = sessionStorage.getItem("tableRows")
         if (cachedSets) {
             load(JSON.parse(cachedSets))
             if (cachedTable) {
@@ -253,20 +246,9 @@ function SurveyForm() {
         }
     }, []);
 
-    function disableSaveButton() {
-        if (checked) {
-            if (requiresCompletion && tailCompletion.length === 0) {
-                return true
-            }
-            if ((followUpAnswerChecked === 1 && followUp.length === 0) || (followUpAnswerChecked===2 && followUp.length >0)) {
-                return false
-            }
-        }
-        return true
-    }
 
     return (
-        <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8">
+        <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8 ">
             <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
                 {/*<div className="tw-flex tw-flex-col tw-self-end ">*/}
                 {/*    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">*/}
@@ -289,7 +271,8 @@ function SurveyForm() {
                     </div>
 
 
-                    <Card className="bd tw-h-fit tw-p-4 tw-overflow-y-auto tw-select-text" onMouseUp={handleTextSelect}>
+                    <Card className="bd tw-h-fit tw-min-h-32 tw-p-4 tw-overflow-y-hidden tw-select-text"
+                          onMouseUp={handleTextSelect}>
 
                         {sentenceSets.length === 0 ? (
                             <div className="tw-flex tw-items-center tw-justify-center">
@@ -368,7 +351,8 @@ function SurveyForm() {
                                             <InputGroup
                                                 className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
-                                                <Form.Label className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -3)}`}</Form.Label>
+                                                <Form.Label
+                                                    className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -3)}`}</Form.Label>
                                                 <Form.Control
                                                     as="textarea"
                                                     className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
@@ -467,7 +451,7 @@ function SurveyForm() {
                             <Button
                                 onClick={() => handleSaveClick()}
                                 size="sm"
-                                disabled={disableSaveButton()}
+                                disabled={handleDisabledSave()}
                                 variant="outline-secondary"
                                 className="tw-w-fit  tw-ml-2">
                                 שמור והוסף שאלה
@@ -475,7 +459,7 @@ function SurveyForm() {
                             <Button
                                 onClick={() => handleNextSet()}
                                 size="sm"
-                                disabled={!checked}
+                                disabled={handleDisabledSave() || tableRows.length>0}
                                 variant="outline-primary"
                                 className=" tw-w-fit tw-ml-2">
                                 שמור והמשך לסט המשפטים הבא
@@ -490,7 +474,7 @@ function SurveyForm() {
                 <></>
             ) : (
                 <QuestionTable
-                    tableRows={tableRows}
+                    tableRows={tableRows.filter((row: TableRow) => row.setNumber === currSet + 1)}
                     handleEditClick={handleEditClick}
                     handleDeleteClick={handleDeleteClick}></QuestionTable>
             )}
@@ -532,6 +516,27 @@ function SurveyForm() {
                     </Modal.Footer>
                 </Modal.Dialog>
             </Modal>
+            {/*{*/}
+            {/*    currSet === 0 || currSet % 5 !== 0 ? <></> :*/}
+            {/*        <Modal*/}
+            {/*            show={showFinishModal}*/}
+            {/*            onExit={() => {*/}
+            {/*                setShowFinishModal(false)*/}
+            {/*            }}*/}
+            {/*        >*/}
+            {/*            <Modal.Dialog>*/}
+            {/*                <Modal.Header closeButton>*/}
+            {/*                    */}
+            {/*                </Modal.Header>*/}
+            {/*                <Modal.Footer>*/}
+            {/*                    <Button onClick={handleFinishClick}>הגש</Button>*/}
+            {/*                    <Button onClick={() => {*/}
+            {/*                        setShowFinishModal(false)*/}
+            {/*                    }}>בטל</Button>*/}
+            {/*                </Modal.Footer>*/}
+            {/*            </Modal.Dialog>*/}
+            {/*        </Modal>*/}
+            {/*}*/}
 
         </Container>
 

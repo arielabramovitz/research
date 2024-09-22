@@ -1,20 +1,30 @@
-import React, {useState} from "react";
-import {Collapse, Container, Card} from "react-bootstrap";
+import React, {SetStateAction, useState} from "react";
+import {Collapse, Container, Card, Form, Modal} from "react-bootstrap";
+import "./index.css"
 
-function InstructionsTab() {
+interface InstructionsTabProps {
+    showModal: boolean;
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function InstructionsTab({showModal, setShowModal}: InstructionsTabProps) {
     const [expend, setExpend] = useState(false);
-
     const handleClick = () => {
         setExpend(!expend);
     };
 
+    const handleChecked = () => {
+        setShowModal(false);
+        sessionStorage.setItem("readInstructions", "true")
+    }
+
     return (
-        <Container className="h6 tw-my-2 tw-flex-col tw-border-collapse tw-select-none">
+        <Container className={showModal?"":"tw-my-2"+" h6  tw-flex-col tw-border-collapse tw-select-none"}>
             <Card
                 className={
                     !expend
                         ? "tw-bg-opacity-0 tw-transition-all tw-duration-300 hover:tw-scale-[101%] hover:tw-drop-shadow-lg "
-                        : "" + "tw-select-none"
+                        : "" + "tw-select-none "
                 }
             >
                 <Card.Header
@@ -38,7 +48,16 @@ function InstructionsTab() {
                                 מתחילים את הניסוי עצמו.</p>
                             <p className="h6">
                                 בהצלחה!</p>
+                            <div className={!showModal?"tw-hidden":""}>
+                                <Form.Check
+                                    checked={!showModal}
+                                    onChange={handleChecked}
+                                    label="קראתי את ההוראות"
+                                />
+                            </div>
+
                         </Card.Body>
+
                     </div>
                 </Collapse>
             </Card>

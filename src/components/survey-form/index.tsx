@@ -299,18 +299,18 @@ function SurveyForm() {
     return (
         <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8 ">
             <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
-                <div className="tw-flex tw-flex-col tw-self-end ">
-                    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">
-                        <Button disabled={currSet <= 0} size="sm" className="tw-flex tw-justify-center tw-align-middle"
-                                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight
-                            className=""/></Button>
-                        <div
-                            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>
-                        <Button disabled={currSet > 29} className="tw-flex  tw-justify-center"
-                                onClick={() => handleSetChange(true)} size="sm"
-                                variant="outline-dark"><ChevronLeft/></Button>
-                    </ButtonGroup>
-                </div>
+                {/*<div className="tw-flex tw-flex-col tw-self-end ">*/}
+                {/*    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">*/}
+                {/*        <Button disabled={currSet <= 0} size="sm" className="tw-flex tw-justify-center tw-align-middle"*/}
+                {/*                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight*/}
+                {/*            className=""/></Button>*/}
+                {/*        <div*/}
+                {/*            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>*/}
+                {/*        <Button disabled={currSet > 29} className="tw-flex  tw-justify-center"*/}
+                {/*                onClick={() => handleSetChange(true)} size="sm"*/}
+                {/*                variant="outline-dark"><ChevronLeft/></Button>*/}
+                {/*    </ButtonGroup>*/}
+                {/*</div>*/}
                 <Container className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
 
 

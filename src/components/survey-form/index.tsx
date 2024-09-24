@@ -3,7 +3,7 @@ import {followUps, heads, tails} from "./questions.ts";
 import {getSentenceSets, ParticipantAnswer, ParticipantAnswers, SentenceSet, uploadParticipantAnswers,} from "./api.ts";
 import {
     Alert,
-    Button,
+    Button, ButtonGroup,
     Card,
     Container,
     Form,
@@ -13,6 +13,7 @@ import {
 } from "react-bootstrap";
 import QuestionTable from "./questionsTable.tsx";
 import {Params, useParams, useSearchParams} from 'react-router-dom';
+import {ChevronLeft, ChevronRight} from "react-bootstrap-icons";
 
 export type TableRow = {
     setNumber: number,
@@ -25,7 +26,9 @@ export type TableRow = {
 
 function SurveyForm() {
     const [params] = useSearchParams();
-    const id = params.get('id');
+    const id = params.get('PROLIFIC_ID');
+    const sessionId = params.get('SESSION_ID');
+
 
     const tailCompletionInd = 9;
     const headRef = useRef<HTMLSelectElement | null>(null);
@@ -34,9 +37,11 @@ function SurveyForm() {
     const tailCompletionRef = useRef<HTMLTextAreaElement | null>(null);
 
     const [sentenceSets, setSentenceSets] = useState<SentenceSet[]>([]);
-    const [currSet, setCurrSet] = useState<number>(-1);
+    const [currSet, setCurrSet] = useState<number>(0);
     const [requiresCompletion, setRequiresCompletion] = useState<boolean>(false);
 
+    const [currentMiddle, setCurrentMiddle] = useState<string>("")
+    const [showAlertnessModal, setShowAlertnessModal] = useState<boolean>(false)
     const [followUpAnswerChecked, setFollowUpAnswerChecked] = useState<number>(0);
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [highlightedAnswer, setHighlightedAnswer] = useState("");
@@ -70,15 +75,11 @@ function SurveyForm() {
     };
 
     const handleNextSet = async () => {
-        if (currSet >= sentenceSets.length - 1) {
-            await getSentenceSets(1).then((ret: SentenceSet[]) => {
-                setSentenceSets((prevState: SentenceSet[]) => {
-                    return [...prevState, ...ret]
-                })
-            })
+        handleSave()
+        if (currSet === 29) {
+            handleFinish()
         }
         setCurrSet(currSet + 1)
-
     }
 
     const handleTextSelect = (e: React.MouseEvent<HTMLElement>) => {
@@ -122,14 +123,17 @@ function SurveyForm() {
         setTableRows(newRows)
     };
 
-    const handleFinishClick = () => {
-        if (id) {
-            const userAnswers: ParticipantAnswers = {id: id, answers: []}
+    const handleFinish = () => {
+        if (id && sessionId) {
+            const userAnswers: ParticipantAnswers = {id: id, sessionId: sessionId, answers: []}
 
             for (const row of tableRows) {
                 userAnswers.answers[row.setNumber - 1] = {
                     sentenceSetId: sentenceSets[row.setNumber - 1].id,
-                    sentences: sentenceSets[row.setNumber - 1].sentences,
+                    first: sentenceSets[row.setNumber - 1].sentences[0],
+                    second: sentenceSets[row.setNumber - 1].sentences[0],
+                    third: sentenceSets[row.setNumber - 1].sentences[0],
+                    verb: boldedVerb,
                     questions: [
                         ...userAnswers.answers[row.setNumber - 1]?.questions || [],
                         {
@@ -146,18 +150,18 @@ function SurveyForm() {
             })
             return
         }
-        alert("Id wasn't passed")
+        alert("PROLIFIC_ID or SESSION_ID wasn't passed")
 
     }
 
-    const handleSaveClick = () => {
+    const handleSave = () => {
         setTableRows((prevRows: TableRow[]) => {
             const newRows = [
                 ...prevRows,
                 {
                     setNumber: currSet + 1,
                     questionHead: questionHead,
-                    questionTail: !requiresCompletion ? questionTail : questionTail.slice(0, -3) + " " + tailCompletion,
+                    questionTail: !requiresCompletion ? questionTail : questionTail.slice(0, -4) + " " + tailCompletion,
                     answer: boldedVerb,
                     followupQuestion: followUp,
                     followupAnswer: highlightedAnswer,
@@ -174,93 +178,139 @@ function SurveyForm() {
         setQuestionHead("");
         setFollowUp("");
         setHighlightedAnswer("");
-        if (headRef.current && tailRef.current && followUpAnswerRef.current) {
+        if (headRef.current && tailRef.current) {
             headRef.current.value = "";
             tailRef.current.value = "";
         }
-
+        if (followUpAnswerRef.current) {
+            followUpAnswerRef.current.value = "";
+        }
     };
 
-    const setVerb = () => {
-        if (sentenceSets[currSet]) {
-            if (sentenceSets[currSet].verbs.length > 0) {
-                const ind: number = Math.floor(Math.random() * sentenceSets[currSet].verbs.length)
-                const verb = sentenceSets[currSet].verbs[ind];
-                const boldedVerb = `<b>${verb}</b>`;
-
-                const newSentences = sentenceSets[currSet].sentences.map((sentence, index) => {
-                    if (index === 1) {
-                        return sentence.replace(verb, boldedVerb);
-                    }
-                    return sentence;
-                });
-
-                // Update the sentenceSets array with the new sentences
-                const newSentenceSets = [...sentenceSets];
-                newSentenceSets[currSet].sentences = newSentences;
-                setSentenceSets(newSentenceSets);
-            }
-        }
-    }
 
     const handleDisabledSave = () => {
-        if (checked && (!requiresCompletion || (requiresCompletion && tailCompletion.length > 0))) {
-            if (followUp.length > 0) {
-                if ((followUpAnswerChecked === 1 && highlightedAnswer.length === 0) || (followUpAnswerChecked === 2 && highlightedAnswer.length > 0)) {
-                    return true;
-                }
+        if (requiresCompletion) {
+            if (tailCompletion.length === 0) {
+                return true;
             }
-            return false;
+        }
+        if (checked) {
+            if (followUp.length === 0 || ((followUpAnswerChecked === 1 && highlightedAnswer.length > 0) || (followUpAnswerChecked === 2 && highlightedAnswer.length === 0))) {
+                return false
+            }
         }
         return true;
     }
 
 
-    useEffect(() => {
-        setBoldedVerb(sentenceSets[currSet]?.verbs[Math.floor(Math.random() * sentenceSets[currSet].verbs.length)])
-    }, [currSet])
+    // useEffect(() => {
+    //     setBoldedVerb(sentenceSets[currSet]?.verbs[boldedVerbsInds[currSet]])
+    //     setCurrentMiddle(sentenceSets[currSet].sentences[1].replace(boldedVerb,`${boldedVerb}`))
+    // }, [currSet, boldedVerbsInds,sentenceSets])
+
+    // useEffect(() => {
+    // }, [boldedVerb])
+
+    // useEffect(() => {
+    //     const test = async ()=>{
+    //         const retrieve = async () => {
+    //             const ret = getSentenceSets(30).then(async (ret: SentenceSet[]) => {
+    //                 await load(ret)
+    //                 sessionStorage.setItem("sentenceSets", JSON.stringify(ret))
+    //                 return ret
+    //             })
+    //         }
+    //         const load = async (sentenceSets: SentenceSet[]) => {
+    //             setSentenceSets(sentenceSets)
+    //             setCurrSet(0)
+    //             const inds = sentenceSets.map((set: SentenceSet) => Math.floor(Math.random() * set.verbs.length));
+    //             setBoldedVerbsInds(inds)
+    //             sessionStorage.setItem("boldedInds", JSON.stringify(inds))
+    //             if (sentenceSets.length>0) {
+    //
+    //                 setBoldedVerb(sentenceSets[currSet].verbs[boldedVerbsInds[currSet]])
+    //             }
+    //         }
+    //         const cachedSets = sessionStorage.getItem('sentenceSets');
+    //         const cachedTable = sessionStorage.getItem("tableRows");
+    //         const boldedInds = sessionStorage.getItem("boldedInds");
+    //
+    //         if (cachedSets) {
+    //             await load(JSON.parse(cachedSets))
+    //             if (cachedTable) {
+    //                 setTableRows(JSON.parse(cachedTable))
+    //             }
+    //             if (boldedInds) {
+    //                 setBoldedVerbsInds(JSON.parse(boldedInds))
+    //             }
+    //         } else {
+    //             await retrieve();
+    //         }
+    //     }
+    //     test()
+    //
+    // }, []);
 
     useEffect(() => {
-        const retrieve = async () => {
-            const ret = getSentenceSets(30).then((ret: SentenceSet[]) => {
-                load(ret)
-                sessionStorage.setItem("sentenceSets", JSON.stringify(ret))
-                return ret
-            })
-        }
-        const load = (sentenceSets: SentenceSet[]) => {
-            setSentenceSets(sentenceSets)
-            setCurrSet(0)
-            setVerb()
-        }
-        console.log(sentenceSets[currSet])
-        const cachedSets = sessionStorage.getItem('sentenceSets');
-        const cachedTable = sessionStorage.getItem("tableRows")
-        if (cachedSets) {
-            load(JSON.parse(cachedSets))
-            if (cachedTable) {
-                setTableRows(JSON.parse(cachedTable))
+        const load = async () => {
+            const cachedSets = sessionStorage.getItem('sentenceSets');
+            const cachedTable = sessionStorage.getItem("tableRows");
+            const boldedInds = sessionStorage.getItem("boldedInds");
+
+            if (!cachedSets) {
+                const sets = await getSentenceSets(30);
+                setSentenceSets(sets);
+
+                const inds = sets.map((set: SentenceSet) =>
+                    Math.floor(Math.random() * set.verbs.length)
+                );
+                setBoldedVerbsInds(inds);
+                setCurrSet(0);
+                setBoldedVerb(sets[0].verbs[inds[0]]);
+
+                sessionStorage.setItem("sentenceSets", JSON.stringify(sets));
+                sessionStorage.setItem("boldedInds", JSON.stringify(inds));
+            } else {
+                setSentenceSets(JSON.parse(cachedSets))
+                if (cachedTable) {
+                    setTableRows(JSON.parse(cachedTable))
+                }
+                if (boldedInds) {
+                    setBoldedVerbsInds(JSON.parse(boldedInds))
+                }
             }
-        } else {
-            retrieve();
-        }
+        };
+
+        load();
     }, []);
 
+    useEffect(()=>{
+        setBoldedVerb(sentenceSets[currSet]?.verbs[boldedVerbsInds[currSet]])
+    }, [currSet])
+
+    function handleSetChange(isLeft: boolean) {
+        if (isLeft) {
+            setCurrSet(currSet + 1)
+        } else {
+            setCurrSet(currSet - 1)
+        }
+    }
 
     return (
         <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8 ">
             <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
-                {/*<div className="tw-flex tw-flex-col tw-self-end ">*/}
-                {/*    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">*/}
-                {/*        <Button size="sm" className="tw-flex tw-justify-center tw-align-middle"*/}
-                {/*                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight*/}
-                {/*            className=""/></Button>*/}
-                {/*        <div*/}
-                {/*            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>*/}
-                {/*        <Button className="tw-flex  tw-justify-center" onClick={() => handleSetChange(true)} size="sm"*/}
-                {/*                variant="outline-dark"><ChevronLeft/></Button>*/}
-                {/*    </ButtonGroup>*/}
-                {/*</div>*/}
+                <div className="tw-flex tw-flex-col tw-self-end ">
+                    <ButtonGroup className="tw-w-32 tw-flex tw-align-middle tw-justify-center">
+                        <Button disabled={currSet <= 0} size="sm" className="tw-flex tw-justify-center tw-align-middle"
+                                onClick={() => handleSetChange(false)} variant="outline-dark"><ChevronRight
+                            className=""/></Button>
+                        <div
+                            className="tw-px-2 tw-border tw-text-[#00000040]">{`${currSet + 1}/${sentenceSets.length}`}</div>
+                        <Button disabled={currSet > 29} className="tw-flex  tw-justify-center"
+                                onClick={() => handleSetChange(true)} size="sm"
+                                variant="outline-dark"><ChevronLeft/></Button>
+                    </ButtonGroup>
+                </div>
                 <Container className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
 
 
@@ -287,7 +337,11 @@ function SurveyForm() {
                                     <span
                                         className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
                                         dangerouslySetInnerHTML={{
-                                            __html: sentenceSets[currSet].sentences[1].replace(boldedVerb, `<b>${boldedVerb}</b>`),
+                                            __html: sentenceSets[currSet].sentences[1].split(" ").map((word:string)=>{
+                                                if (word.includes(sentenceSets[currSet].verbs[boldedVerbsInds[currSet]])){
+                                                    return `<b>${word}</b>`
+                                                } else return word
+                                            }).join(" "),
                                         }}></span>
                                     <span>{` ${sentenceSets[currSet].sentences[2]}`}</span>
                                 </div>
@@ -352,7 +406,7 @@ function SurveyForm() {
                                                 className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
                                                 <Form.Label
-                                                    className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -3)}`}</Form.Label>
+                                                    className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -4)}`}</Form.Label>
                                                 <Form.Control
                                                     as="textarea"
                                                     className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
@@ -376,6 +430,7 @@ function SurveyForm() {
                             <label className="tw-mt-2">
                                 <Form.Check
                                     onClick={() => {
+                                        setFollowUpAnswerChecked(0)
                                         setChecked(!checked);
                                     }}
                                     required
@@ -387,7 +442,7 @@ function SurveyForm() {
                         </Container>
                     )}
                     <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
-                        {followUp.length === 0 || questionHead.length === 0 ? (
+                        {followUp.length === 0 || questionHead.length === 0 || !checked ? (
                             <></>
                         ) : (
                             <div className="tw-pt-8 tw-flex tw-flex-col tw-mx-0 tw-h-full tw-w-full">
@@ -421,6 +476,7 @@ function SurveyForm() {
                                         onClick={() => {
                                             setFollowUpAnswerChecked(1)
                                         }}
+                                        checked={followUpAnswerChecked === 1}
                                         required
                                         className=""
                                         name="followUpAnswerCheck"
@@ -434,6 +490,7 @@ function SurveyForm() {
                                             setFollowUpAnswerChecked(2)
                                         }}
                                         required
+                                        checked={followUpAnswerChecked === 2}
                                         className=""
                                         name="followUpAnswerCheck"
                                         type="radio"
@@ -447,22 +504,22 @@ function SurveyForm() {
 
                     </Container>
                     {questionHead.length === 0 || questionTail.length === 0 ? <></> :
-                        <div className="tw-flex tw-w-full tw-justify-between">
+                        <div className="tw-flex tw-w-full tw-justify-between tw-mt-8">
                             <Button
-                                onClick={() => handleSaveClick()}
+                                onClick={() => handleSave()}
                                 size="sm"
                                 disabled={handleDisabledSave()}
-                                variant="outline-secondary"
-                                className="tw-w-fit  tw-ml-2">
+                                variant="success"
+                                className="tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
                                 שמור והוסף שאלה
                             </Button>
                             <Button
                                 onClick={() => handleNextSet()}
                                 size="sm"
-                                disabled={handleDisabledSave() || tableRows.length>0}
-                                variant="outline-primary"
-                                className=" tw-w-fit tw-ml-2">
-                                שמור והמשך לסט המשפטים הבא
+                                disabled={handleDisabledSave()}
+                                variant="primary"
+                                className=" tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
+                                {currSet < 29 ? "שמור והמשך לסט המשפטים הבא" : "סיים"}
                             </Button>
                         </div>
 
@@ -470,7 +527,7 @@ function SurveyForm() {
                 </Container>
 
             </Card>
-            {tableRows.length === 0 ? (
+            {tableRows.filter((row: TableRow) => row.setNumber === currSet + 1).length === 0 ? (
                 <></>
             ) : (
                 <QuestionTable
@@ -478,65 +535,52 @@ function SurveyForm() {
                     handleEditClick={handleEditClick}
                     handleDeleteClick={handleDeleteClick}></QuestionTable>
             )}
-            <div className="tw-flex tw-flex-row tw-justify-end tw-pb-8">
-                {tableRows.length === 0 ? <></> :
-                    <Button onClick={handleFinishClick} size="sm" variant="outline-danger" className=" tw-w-16 tw-mt-4">
-                        סיים
-                    </Button>
-                }
-            </div>
-            {!showAlert ? (
-                <></>
-            ) : (
-                <Alert
-                    className="tw-fixed tw-transform tw-translate-x-1/2 tw-right-1/2 tw-top-0 tw-z-1050 tw-w-fit"
-                    dismissible
-                    variant="danger"
-                    onClose={() => {
-                        setShowAlert(false);
-                    }}>
-                    נא לוודא שהתשובה עונה על השאלה ושענית על שאלת ההמשך
-                </Alert>
-            )}
+
             <Modal
                 show={showFinishModal}
-                onExit={() => {
-                    setShowFinishModal(false)
-                }}
+                backdrop="static"
             >
                 <Modal.Dialog>
-                    <Modal.Header closeButton>
-                        <h4>האם את\ה בטוח\ה שסיימת?</h4>
-                    </Modal.Header>
+
+                    <Modal.Body>
+                        <div className="tw-flex tw-align-middle tw-justify-center">
+                            <div>מיד תועבר/י חזרה לפרוליפיק</div>
+                            <Spinner/>
+                        </div>
+                    </Modal.Body>
                     <Modal.Footer>
-                        <Button onClick={handleFinishClick}>הגש</Button>
+                        <Button onClick={handleFinish}>הגש</Button>
                         <Button onClick={() => {
                             setShowFinishModal(false)
                         }}>בטל</Button>
                     </Modal.Footer>
                 </Modal.Dialog>
             </Modal>
-            {/*{*/}
-            {/*    currSet === 0 || currSet % 5 !== 0 ? <></> :*/}
-            {/*        <Modal*/}
-            {/*            show={showFinishModal}*/}
-            {/*            onExit={() => {*/}
-            {/*                setShowFinishModal(false)*/}
-            {/*            }}*/}
-            {/*        >*/}
-            {/*            <Modal.Dialog>*/}
-            {/*                <Modal.Header closeButton>*/}
-            {/*                    */}
-            {/*                </Modal.Header>*/}
-            {/*                <Modal.Footer>*/}
-            {/*                    <Button onClick={handleFinishClick}>הגש</Button>*/}
-            {/*                    <Button onClick={() => {*/}
-            {/*                        setShowFinishModal(false)*/}
-            {/*                    }}>בטל</Button>*/}
-            {/*                </Modal.Footer>*/}
-            {/*            </Modal.Dialog>*/}
-            {/*        </Modal>*/}
-            {/*}*/}
+            {
+                currSet === 0 || currSet % 5 !== 0 ? <></> :
+                    <Modal
+                        show={showFinishModal}
+                        centered={true}
+                        backdrop="static"
+                        onExit={() => {
+                            setShowAlertnessModal(false)
+                        }}
+
+                    >
+                        <Modal.Dialog>
+                            <Modal.Header>
+
+                            </Modal.Header>
+                            <Modal.Body>
+                                {}
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button onClick={() => {
+                                }}>אישור</Button>
+                            </Modal.Footer>
+                        </Modal.Dialog>
+                    </Modal>
+            }
 
         </Container>
 

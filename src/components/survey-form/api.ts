@@ -7,12 +7,16 @@ export type SentenceSet = {
 
 export type ParticipantAnswers = {
     id: string;
+    sessionId: string;
     answers: ParticipantAnswer[];
 };
 
 export type ParticipantAnswer = {
     sentenceSetId: string;
-    sentences: string[];
+    first: string;
+    second: string;
+    third: string;
+    verb: string;
     questions: Question[];
 };
 

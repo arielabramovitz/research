@@ -23,42 +23,77 @@ const CustomDiv = ({children, className, style, contentClassName}: CustomDivProp
 }
 
 function App() {
-    const [showModal, setShowModal] = useState<boolean>(true)
+    const [showInstructionsModal, setShowInstructionsModal] = useState<boolean>(true)
+    const [showExamplesModal, setShowExamplesModal] = useState<boolean>(false)
+
 
     useEffect(() => {
         const readInstruction = sessionStorage.getItem('readInstructions')
+        const readExamples = sessionStorage.getItem('readExamples')
         if (readInstruction) {
-            setShowModal(false)
+            setShowInstructionsModal(readInstruction === 'true')
+        }
+        if (readExamples) {
+            setShowExamplesModal(readExamples === 'true')
         }
     }, [])
 
     return (
-
         <Router>
             <Routes>
                 <Route path="/" element={
                     <Container fluid
-                               className={showModal ? "tw-blur " : "" + 'tw-flex tw-flex-col tw-grow tw-w-full tw-h-full tw-px-12 tw-pt-10 '}>
+                               className={showInstructionsModal || showExamplesModal ? "tw-blur " : "" + 'tw-flex tw-flex-col tw-grow tw-w-full tw-h-full tw-px-12 tw-pt-10 '}>
 
-                        <Modal dialogAs={CustomDiv} show={showModal} center="" backdrop="static" fullscreen="true"
+                        <Modal dialogAs={CustomDiv} show={showInstructionsModal&&!showExamplesModal} center="" backdrop="static"
+                               fullscreen="true"
                                className={"tw-h-fit"}>
                             <Modal.Body className="tw-px-12 tw-w-full tw-py-8">
                                 <Row className="tw-h-fit">
-                                    <InstructionsTab {...{showModal, setShowModal}} ></InstructionsTab>
+                                    <InstructionsTab {...{
+                                        showInstructionsModal,
+                                        setShowInstructionsModal,
+                                        setShowExamplesModal
+                                    }} ></InstructionsTab>
+                                </Row>
+                            </Modal.Body>
+                        </Modal>
+                        <Modal dialogAs={CustomDiv} show={!showInstructionsModal&&showExamplesModal} center=""
+                               backdrop="static" fullscreen="true"
+                               className={""} scrollable={true}>
+                            <Modal.Body className=" tw-px-12 tw-w-full tw-py-8">
+                                <Row className="tw-h-fit">
+                                    <InstructionsTab {...{
+                                        showInstructionsModal,
+                                        setShowInstructionsModal,
+                                        setShowExamplesModal
+                                    }} ></InstructionsTab>
+                                </Row>
+                                <Row className={"tw-h-fit "}>
+                                    <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
                                 </Row>
                             </Modal.Body>
                         </Modal>
 
-                        <Row className={showModal ? "tw-invisible" : "" + " tw-h-fit"}>
-                            <InstructionsTab {...{showModal, setShowModal}} ></InstructionsTab>
-                        </Row>
+                        {showExamplesModal || showInstructionsModal ? <></> :
+                            <>
+                                <Row className={showInstructionsModal ? "tw-invisible" : "" + " tw-h-fit"}>
+                                    <InstructionsTab {...{
+                                        showInstructionsModal,
+                                        setShowInstructionsModal,
+                                        setShowExamplesModal
+                                    }} ></InstructionsTab>
+                                </Row>
 
-                        <Row className={"tw-h-fit "}>
-                            <ExamplesTab></ExamplesTab>
-                        </Row>
-                        <Row className="tw-h-full">
-                            <SurveyForm></SurveyForm>
-                        </Row>
+                                <Row className={showExamplesModal ? "tw-invisible" : "" + " tw-h-fit"}>
+                                    <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
+                                </Row>
+                                <Row className="tw-h-full">
+                                    <SurveyForm></SurveyForm>
+                                </Row>
+                            </>
+
+                        }
                     </Container>
                 }/>
 

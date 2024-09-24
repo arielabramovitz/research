@@ -51,7 +51,7 @@ export default function QuestionTable(props:TableProps) {
         >
             <thead>
                 <tr className="h6">
-                    {/*<th></th>*/}
+                    <th></th>
                     <th></th>
                     <th>סט</th>
                     <th>שאלה</th>

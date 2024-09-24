@@ -14,16 +14,26 @@ import {
 import {heads, tails} from "../survey-form/questions.ts";
 import QuestionTable from "../survey-form/questionsTable.tsx";
 
-function ExamplesTab() {
+
+interface ExampleTabProps {
+    showExamplesModal: boolean;
+    setShowExamplesModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps) {
     const numOfExamples = exampleSentences.length;
     const [expend, setExpend] = useState(false);
     const [chosen, setChosen] = useState(-1);
+    const [visible, setVisible] = useState<number[]>([0]);
+    const handleChecked = () => {
+        setShowExamplesModal(false)
+        sessionStorage.setItem("readExamples", "false")
+    }
 
     const generateExamples = () =>
         exampleSentences.map((sentenceSet, i) => (
             <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8"
                        hidden={chosen !== i} key={i}>
-                <Card dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
+                <Card key={i} dir="rtl" className="bd tw-flex tw-flex-col tw-p-4 tw-w-full tw-h-full">
 
                     <Container key={i} className="tw-flex tw-flex-col tw-w-full tw-h-full tw-p-1 tw-mb-2">
                         <span className="tw-mb-4  tw-text-[#006D77]">{sentenceSet.preText}</span>
@@ -43,10 +53,10 @@ function ExamplesTab() {
                             </div>
                         </Card>
                         {sentenceSet.head.map((head: string, ind: number) =>
-                            (
+                                (
                                 <div key={ind} className="tw-flex tw-flex-col">
 
-                                    <span className="tw-text-[#006D77] tw-my-2">{sentenceSet.postText[ind]}</span>
+                                    <span className="tw-text-[#006D77] tw-my-2 ">{sentenceSet.postText[ind]}</span>
                                     <span className="tw-underline tw-font-bold">שלב ראשון:</span>
 
                                     <span
@@ -82,7 +92,7 @@ function ExamplesTab() {
 
                                             {(!sentenceSet.requiresCompletion[ind] ? <div className="tw-flex tw-flex-col">
                                                 <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-my-2">{sentenceSet.postQuestion[ind]}</span>
-                                                <span className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -3) : sentenceSet.tail[ind]}`}</b></span>
+                                                <span className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -4) : sentenceSet.tail[ind]}`}</b></span>
 
                                             </div> : (
 
@@ -140,25 +150,25 @@ function ExamplesTab() {
                                                     <div
                                                         className="tw-border-t-2 tw-border-[#000] tw-border-opacity-25 tw-pt-8"></div>
                                                     <span className="tw-underline tw-font-bold tw-pb-2">שלב שני:</span>
-                                                    {sentenceSet.prePartTwo[ind].split("\n").map((part)=>{
+                                                    {sentenceSet.prePartTwo[ind].split("\n").map((part,ind)=>{
                                                         return (
-                                                            <span className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
+                                                            <span key={ind} className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
 
                                                         )
                                                     })}
                                                     {/*<span className="tw-whitespace-pre">{`${sentenceSet.prePartTwo[ind]}`}</span>*/}
                                                     {
                                                         !sentenceSet.preFollowUpQuestion[ind]?<></>:
-                                                            <div className="tw-pt-2">
+                                                            <div key={ind} className="tw-pt-2">
                                                                 <span className="tw-text-[#006D77]">{sentenceSet.preFollowUpQuestion[ind]}<br/></span>
                                                                 <span className="">שאלת המשך: </span>
                                                                 <span
                                                                     className="h6 tw-py-4 tw-font-bold">{sentenceSet.followUp[ind]}</span>
                                                             </div>
                                                     }
-                                                    {sentenceSet.preFollowUpPair[ind]?.split("\n").map((part)=>{
+                                                    {sentenceSet.preFollowUpPair[ind]?.split("\n").map((part, ind)=>{
                                                         return (
-                                                            <span className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
+                                                            <span key={ind} className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
 
                                                         )
                                                     })}
@@ -218,12 +228,12 @@ function ExamplesTab() {
 
                                     </Container>
                                     <div
-                                        className={(sentenceSet.head.length - 1 < ind ? "tw-mb-8 " : "tw-mb-8 ") + "tw-mt-8 tw-flex tw-w-full tw-justify-between tw-align-bottom"}>
+                                        className={"tw-mt-8 tw-flex tw-w-full tw-justify-between tw-align-bottom"}>
                                         <Button
                                             size="sm"
                                             active={!(sentenceSet.head.length - 1 === ind)}
                                             disabled={sentenceSet.head.length - 1 === ind}
-                                            variant="outline-secondary"
+                                            variant="success"
                                             className="tw-w-fit  tw-ml-2">
                                             שמור והוסף שאלה
                                         </Button>
@@ -231,7 +241,7 @@ function ExamplesTab() {
                                             size="sm"
                                             active={sentenceSet.head.length - 1 === ind}
                                             disabled={!(sentenceSet.head.length - 1 === ind)}
-                                            variant="outline-primary"
+                                            variant="primary"
                                             className="tw-w-fit tw-ml-2">
                                             שמור והמשך לסט המשפטים הבא
                                         </Button>
@@ -242,6 +252,17 @@ function ExamplesTab() {
 
                         }
                     </Container>
+                    {
+                        chosen!==numOfExamples-1 || !showExamplesModal ? <></> :
+                            <div className="tw-mt-4 tw-w-full tw-flex tw-justify-center">
+                                <Form.Check
+                                    key={i}
+                                    className=""
+                                    onChange={()=>{handleChecked()}}
+                                    label="עברתי על כל הדוגמאות ואני מוכן/ה להתחיל"
+                                />
+                            </div>
+                    }
                 </Card>
             </Container>))
 
@@ -352,6 +373,7 @@ function ExamplesTab() {
         return [...Array(numOfExamples).keys()].map((i, ind) => {
             return (
                 <Button
+                    disabled={showExamplesModal?!(chosen>=0?i===chosen+1||i===chosen-1:i===chosen+1):false}
                     variant={chosen === i ? "dark" : "secondary"}
                     key={i}
                     className="tw-shadow tw-mx-2 tw-w-32"
@@ -395,13 +417,17 @@ function ExamplesTab() {
                                     <Container className="tw-px-0 tw-mt-8 tw-select-text">
 
                                         {generateExamples()}
+
+
                                     </Container>
 
                                 )}
 
+
                             </div>
                         </Card.Body>
                     </div>
+
                 </Collapse>
             </Card>
         </Container>

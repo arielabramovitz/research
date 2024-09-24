@@ -3,23 +3,27 @@ import {Collapse, Container, Card, Form, Modal} from "react-bootstrap";
 import "./index.css"
 
 interface InstructionsTabProps {
-    showModal: boolean;
-    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    showInstructionsModal: boolean;
+    setShowInstructionsModal: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowExamplesModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function InstructionsTab({showModal, setShowModal}: InstructionsTabProps) {
+function InstructionsTab({showInstructionsModal, setShowInstructionsModal,setShowExamplesModal}: InstructionsTabProps) {
     const [expend, setExpend] = useState(false);
     const handleClick = () => {
         setExpend(!expend);
     };
 
     const handleChecked = () => {
-        setShowModal(false);
-        sessionStorage.setItem("readInstructions", "true")
+        setShowInstructionsModal(false);
+        sessionStorage.setItem("readInstructions", "false")
+        setShowExamplesModal(true)
+        sessionStorage.setItem("readExamples", "true")
+
     }
 
     return (
-        <Container className={showModal?"":"tw-my-2"+" h6  tw-flex-col tw-border-collapse tw-select-none"}>
+        <Container className={showInstructionsModal?"":"tw-my-2"+" h6  tw-flex-col tw-border-collapse tw-select-none"}>
             <Card
                 className={
                     !expend
@@ -48,9 +52,9 @@ function InstructionsTab({showModal, setShowModal}: InstructionsTabProps) {
                                 מתחילים את הניסוי עצמו.</p>
                             <p className="h6">
                                 בהצלחה!</p>
-                            <div className={!showModal?"tw-hidden":""}>
+                            <div className={+!showInstructionsModal?"tw-hidden":""+" tw-flex tw-justify-center "}>
                                 <Form.Check
-                                    checked={!showModal}
+                                    checked={!showInstructionsModal}
                                     onChange={handleChecked}
                                     label="קראתי את ההוראות"
                                 />

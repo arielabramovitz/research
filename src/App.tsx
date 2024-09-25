@@ -75,25 +75,21 @@ function App() {
                             </Modal.Body>
                         </Modal>
 
-                        {showExamplesModal || showInstructionsModal ? <></> :
-                            <>
-                                <Row className={showInstructionsModal ? "tw-invisible" : "" + " tw-h-fit"}>
-                                    <InstructionsTab {...{
-                                        showInstructionsModal,
-                                        setShowInstructionsModal,
-                                        setShowExamplesModal
-                                    }} ></InstructionsTab>
-                                </Row>
+                        <Row className={showInstructionsModal ? "tw-invisible" : "" + " tw-h-fit"}>
+                            <InstructionsTab {...{
+                                showInstructionsModal,
+                                setShowInstructionsModal,
+                                setShowExamplesModal
+                            }} ></InstructionsTab>
+                        </Row>
 
-                                <Row className={showExamplesModal ? "tw-invisible" : "" + " tw-h-fit"}>
-                                    <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
-                                </Row>
-                                <Row className="tw-h-full">
-                                    <SurveyForm></SurveyForm>
-                                </Row>
-                            </>
+                        <Row className={showExamplesModal ? "tw-invisible" : "" + " tw-h-fit"}>
+                            <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
+                        </Row>
+                        <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + "tw-h-full"}>
+                            <SurveyForm></SurveyForm>
+                        </Row>
 
-                        }
                     </Container>
                 }/>
 

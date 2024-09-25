@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useEffect, useRef, useState} from "react";
+import React, {ChangeEvent, useEffect, useMemo, useRef, useState} from "react";
 import {followUps, heads, tails} from "./questions.ts";
 import {getSentenceSets, ParticipantAnswer, ParticipantAnswers, SentenceSet, uploadParticipantAnswers,} from "./api.ts";
 import {
@@ -21,7 +21,9 @@ export type TableRow = {
     questionTail: string;
     answer: string;
     followupQuestion: string;
-    followupAnswer?: string;
+    followupAnswer: string;
+    tailCompletion: string;
+    tailIndex: number;
 };
 
 function SurveyForm() {
@@ -40,7 +42,7 @@ function SurveyForm() {
     const [currSet, setCurrSet] = useState<number>(0);
     const [requiresCompletion, setRequiresCompletion] = useState<boolean>(false);
 
-    const [currentMiddle, setCurrentMiddle] = useState<string>("")
+    const [tailIndex, setTailIndex] = useState<number>(-1)
     const [showAlertnessModal, setShowAlertnessModal] = useState<boolean>(false)
     const [followUpAnswerChecked, setFollowUpAnswerChecked] = useState<number>(0);
     const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -60,11 +62,11 @@ function SurveyForm() {
     };
 
     const handleSelectTail = (event: ChangeEvent<HTMLSelectElement>) => {
-
         if (event.target) {
-            const index: number = event.target.selectedIndex;
-            const text: string = event.target[index].textContent || "";
-            const qType = Number.parseInt(event.target.value);
+            const index = event.target.selectedIndex
+            const text = tails[index].tail
+            const qType = tails[index].type
+            setTailIndex(index)
             setQuestionTail(text);
             setRequiresCompletion(false);
             if (qType === tailCompletionInd) {
@@ -79,6 +81,7 @@ function SurveyForm() {
         if (currSet === 29) {
             handleFinish()
         }
+        sessionStorage.setItem("currSet", (currSet + 1).toString())
         setCurrSet(currSet + 1)
     }
 
@@ -105,22 +108,45 @@ function SurveyForm() {
     }
 
     const handleEditClick = (i: number) => {
-        const row = tableRows[i]
-        const newRows = tableRows.filter((_: any, j: number) => j !== i);
-        sessionStorage.setItem("tableRows", JSON.stringify(newRows))
-        setTableRows(newRows);
-        setCurrSet(row.setNumber)
-        setQuestionTail(row.questionTail);
+        const row = filteredRows[i]
+        const newRows = filteredRows.filter((_: any, j: number) => j !== i);
+        const filteredWithoutCurr = tableRows.filter((row: TableRow) => row.setNumber != currSet + 1)
+        const updatedRows = [...filteredWithoutCurr, ...newRows]
+        setTableRows(updatedRows);
+        sessionStorage.setItem("tableRows", JSON.stringify(updatedRows))
+        setCurrSet(row.setNumber - 1)
         setQuestionHead(row.questionHead);
+        setQuestionTail(row.questionTail||"");
         setBoldedVerb(row.answer);
+        setTailIndex(row.tailIndex)
+        setTailCompletion(row.tailCompletion)
         setFollowUp(row.followupQuestion);
-        setHighlightedAnswer(row.followupAnswer || "");
+        setHighlightedAnswer(row.followupAnswer);
+        setChecked(true)
+        if (row.followupAnswer && row.followupAnswer.length > 0) {
+            setFollowUpAnswerChecked(1)
+        } else if (row.followupAnswer === "" && row.followupAnswer.length === 0) {
+            setFollowUpAnswerChecked(2)
+        } else {
+            setFollowUpAnswerChecked(0)
+        }
+        if (headRef.current) {
+            headRef.current.value = row.questionHead;
+        }
+        if (tailRef.current) {
+            tailRef.current.value = row.questionTail;
+        }
+        if (followUpAnswerRef.current) {
+            followUpAnswerRef.current.value = row.followupAnswer;
+        }
+
     };
 
     const handleDeleteClick = (i: number) => {
-        const newRows = tableRows.filter((_: any, j: number) => j !== i);
-        sessionStorage.setItem("tableRows", JSON.stringify(newRows))
-        setTableRows(newRows)
+        const newRows = filteredRows.filter((_: any, j: number) => j !== i);
+        const filteredWithoutCurr = tableRows.filter((row: TableRow) => row.setNumber != currSet + 1)
+        setTableRows([...filteredWithoutCurr, ...newRows]);
+        sessionStorage.setItem("tableRows", JSON.stringify(tableRows))
     };
 
     const handleFinish = () => {
@@ -137,7 +163,7 @@ function SurveyForm() {
                     questions: [
                         ...userAnswers.answers[row.setNumber - 1]?.questions || [],
                         {
-                            question: `${row.questionHead} ${row.questionTail}`,
+                            question: `${row.questionHead} ${row.questionTail} ${row.tailCompletion}`,
                             answer: row.answer,
                             followUp: row.followupQuestion,
                             followUpAnswer: row.followupAnswer || ""
@@ -161,30 +187,38 @@ function SurveyForm() {
                 {
                     setNumber: currSet + 1,
                     questionHead: questionHead,
-                    questionTail: !requiresCompletion ? questionTail : questionTail.slice(0, -4) + " " + tailCompletion,
+                    questionTail: !requiresCompletion ? questionTail : (questionTail.slice(0, -4)),
+                    tailCompletion: tailCompletion,
                     answer: boldedVerb,
                     followupQuestion: followUp,
                     followupAnswer: highlightedAnswer,
+                    tailIndex: tailIndex,
                 },
             ];
             sessionStorage.setItem("tableRows", JSON.stringify(newRows))
+            console.log(newRows)
 
             return newRows
         });
+
         setTailCompletion("")
         setFollowUpAnswerChecked(0)
         setChecked(false);
         setQuestionTail("");
         setQuestionHead("");
         setFollowUp("");
+        setTailIndex(-1)
+
         setHighlightedAnswer("");
-        if (headRef.current && tailRef.current) {
-            headRef.current.value = "";
-            tailRef.current.value = "";
-        }
-        if (followUpAnswerRef.current) {
-            followUpAnswerRef.current.value = "";
-        }
+        // if (headRef.current && tailRef.current) {
+        //     headRef.current.value = "";
+        //     tailRef.current.value = "";
+        //
+        // }
+        // if (followUpAnswerRef.current) {
+        //     followUpAnswerRef.current.value = "";
+        // }
+
     };
 
 
@@ -256,6 +290,7 @@ function SurveyForm() {
             const cachedSets = sessionStorage.getItem('sentenceSets');
             const cachedTable = sessionStorage.getItem("tableRows");
             const boldedInds = sessionStorage.getItem("boldedInds");
+            const setInd = sessionStorage.getItem("currSet");
 
             if (!cachedSets) {
                 const sets = await getSentenceSets(30);
@@ -278,15 +313,17 @@ function SurveyForm() {
                 if (boldedInds) {
                     setBoldedVerbsInds(JSON.parse(boldedInds))
                 }
+                if (setInd)
+                    setCurrSet(parseInt(setInd))
             }
         };
 
         load();
     }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         setBoldedVerb(sentenceSets[currSet]?.verbs[boldedVerbsInds[currSet]])
-    }, [currSet])
+    }, [currSet, boldedVerbsInds])
 
     function handleSetChange(isLeft: boolean) {
         if (isLeft) {
@@ -295,6 +332,10 @@ function SurveyForm() {
             setCurrSet(currSet - 1)
         }
     }
+
+    const filteredRows = useMemo(() => {
+        return tableRows.filter((row: TableRow) => row.setNumber === currSet + 1);
+    }, [tableRows, currSet]);
 
     return (
         <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8 ">
@@ -325,9 +366,11 @@ function SurveyForm() {
                           onMouseUp={handleTextSelect}>
 
                         {sentenceSets.length === 0 ? (
-                            <div className="tw-flex tw-items-center tw-justify-center">
+                            <div className="tw-flex">
+                                <div className="tw-flex tw-items-center tw-justify-center">
 
-                                <Spinner animation="border"></Spinner>
+                                    <Spinner animation="border"></Spinner>
+                                </div>
                             </div>
                         ) : (
                             <div className="">
@@ -337,8 +380,8 @@ function SurveyForm() {
                                     <span
                                         className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
                                         dangerouslySetInnerHTML={{
-                                            __html: sentenceSets[currSet].sentences[1].split(" ").map((word:string)=>{
-                                                if (word.includes(sentenceSets[currSet].verbs[boldedVerbsInds[currSet]])){
+                                            __html: sentenceSets[currSet].sentences[1].split(" ").map((word: string) => {
+                                                if (word.includes(sentenceSets[currSet].verbs[boldedVerbsInds[currSet]])) {
                                                     return `<b>${word}</b>`
                                                 } else return word
                                             }).join(" "),
@@ -357,7 +400,10 @@ function SurveyForm() {
                             className="tw-outline tw-outline-1 tw-w-[40%]"
                             aria-label=".form-select-sm"
                             name="questionHead"
-                            ref={headRef}>
+                            ref={headRef}
+                            value={questionHead}
+
+                        >
                             {heads.map((val, i) => (
                                 <option key={i} value={val}>
                                     {val}
@@ -370,10 +416,14 @@ function SurveyForm() {
                             size="sm"
                             onChange={handleSelectTail}
                             className="tw-outline tw-outline-1 tw-w-full tw-mr-4"
+                            aria-label=".form-select-sm"
                             name="questionTail"
-                            ref={tailRef}>
+                            ref={tailRef}
+                            value={tailIndex}
+                        >
+
                             {tails.map((val, i) => (
-                                <option key={i} value={val.type}>
+                                <option key={i} value={i}>
                                     {val.tail}
                                 </option>
                             ))}
@@ -406,7 +456,7 @@ function SurveyForm() {
                                                 className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
                                                 <Form.Label
-                                                    className="tw-my-0">{`${questionHead} ${questionTail.slice(0, -4)}`}</Form.Label>
+                                                    className="tw-my-0">השאלה שנוצרה: <b>{`${questionHead} ${questionTail.slice(0, -4)}`}</b></Form.Label>
                                                 <Form.Control
                                                     as="textarea"
                                                     className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
@@ -429,10 +479,11 @@ function SurveyForm() {
                             <span className="tw-pt-2">התשובה: <b>{boldedVerb}</b></span>
                             <label className="tw-mt-2">
                                 <Form.Check
-                                    onClick={() => {
+                                    onChange={() => {
                                         setFollowUpAnswerChecked(0)
                                         setChecked(!checked);
                                     }}
+                                    checked={checked}
                                     required
                                     className="tw-opacity-50 tw-ml-1 tw-align-baseline "
                                     type="checkbox"
@@ -473,7 +524,7 @@ function SurveyForm() {
                                 </FormGroup>
                                 <Container className="tw-px-0">
                                     <Form.Check
-                                        onClick={() => {
+                                        onChange={() => {
                                             setFollowUpAnswerChecked(1)
                                         }}
                                         checked={followUpAnswerChecked === 1}
@@ -486,7 +537,7 @@ function SurveyForm() {
                                     />
 
                                     <Form.Check
-                                        onClick={() => {
+                                        onChange={() => {
                                             setFollowUpAnswerChecked(2)
                                         }}
                                         required
@@ -527,11 +578,11 @@ function SurveyForm() {
                 </Container>
 
             </Card>
-            {tableRows.filter((row: TableRow) => row.setNumber === currSet + 1).length === 0 ? (
+            {filteredRows.length === 0 ? (
                 <></>
             ) : (
                 <QuestionTable
-                    tableRows={tableRows.filter((row: TableRow) => row.setNumber === currSet + 1)}
+                    tableRows={filteredRows}
                     handleEditClick={handleEditClick}
                     handleDeleteClick={handleDeleteClick}></QuestionTable>
             )}

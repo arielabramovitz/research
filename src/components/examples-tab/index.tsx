@@ -373,7 +373,7 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
         return [...Array(numOfExamples).keys()].map((i, ind) => {
             return (
                 <Button
-                    disabled={showExamplesModal?!(chosen>=0?i===chosen+1||i===chosen-1:i===chosen+1):false}
+                    // disabled={showExamplesModal?!(chosen>=0?i===chosen+1||i===chosen-1:i===chosen+1):false}
                     variant={chosen === i ? "dark" : "secondary"}
                     key={i}
                     className="tw-shadow tw-mx-2 tw-w-32"

@@ -59,6 +59,10 @@ function SurveyForm() {
 
     const handleSelectHead = (event: ChangeEvent<HTMLSelectElement>) => {
         setQuestionHead(event.target.value);
+        setChecked(false)
+        setFollowUpAnswerChecked(0)
+        setHighlightedAnswer("");
+        setTailCompletion("")
     };
 
     const handleSelectTail = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -68,6 +72,10 @@ function SurveyForm() {
             const qType = tails[index].type
             setTailIndex(index)
             setQuestionTail(text);
+            setChecked(false)
+            setFollowUpAnswerChecked(0)
+            setHighlightedAnswer("");
+            setTailCompletion("")
             setRequiresCompletion(false);
             if (qType === tailCompletionInd) {
                 setRequiresCompletion(true);
@@ -77,7 +85,6 @@ function SurveyForm() {
     };
 
     const handleNextSet = async () => {
-        handleSave()
         if (currSet === 29) {
             handleFinish()
         }
@@ -116,7 +123,7 @@ function SurveyForm() {
         sessionStorage.setItem("tableRows", JSON.stringify(updatedRows))
         setCurrSet(row.setNumber - 1)
         setQuestionHead(row.questionHead);
-        setQuestionTail(row.questionTail||"");
+        setQuestionTail(row.questionTail || "");
         setBoldedVerb(row.answer);
         setTailIndex(row.tailIndex)
         setTailCompletion(row.tailCompletion)
@@ -456,7 +463,8 @@ function SurveyForm() {
                                                 className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
                                                 <Form.Label
-                                                    className="tw-my-0">השאלה שנוצרה: <b>{`${questionHead} ${questionTail.slice(0, -4)}`}</b></Form.Label>
+                                                    className="tw-my-0">השאלה
+                                                    שנוצרה: <b>{`${questionHead} ${questionTail.slice(0, -4)}`}</b></Form.Label>
                                                 <Form.Control
                                                     as="textarea"
                                                     className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
@@ -554,28 +562,29 @@ function SurveyForm() {
                         )}
 
                     </Container>
-                    {questionHead.length === 0 || questionTail.length === 0 ? <></> :
-                        <div className="tw-flex tw-w-full tw-justify-between tw-mt-8">
-                            <Button
-                                onClick={() => handleSave()}
-                                size="sm"
-                                disabled={handleDisabledSave()}
-                                variant="success"
-                                className="tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
-                                שמור והוסף שאלה
-                            </Button>
+                    <div className="tw-flex tw-w-full tw-justify-between tw-mt-8">
+
+                        <Button
+                            onClick={() => handleSave()}
+                            size="sm"
+                            disabled={handleDisabledSave()}
+                            variant="success"
+                            className={questionHead.length === 0 || questionTail.length === 0?"tw-invisible":"tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg"}>
+                            שמור והוסף שאלה
+                        </Button>
+                        {filteredRows.length === 0 ? <></> :
                             <Button
                                 onClick={() => handleNextSet()}
                                 size="sm"
-                                disabled={handleDisabledSave()}
                                 variant="primary"
                                 className=" tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
-                                {currSet < 29 ? "שמור והמשך לסט המשפטים הבא" : "סיים"}
-                            </Button>
-                        </div>
+                                {currSet < 29 ? "המשך לסט המשפטים הבא" : "סיים"}
+                            </Button>}
 
-                    }
+
+                    </div>
                 </Container>
+
 
             </Card>
             {filteredRows.length === 0 ? (

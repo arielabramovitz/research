@@ -1,21 +1,82 @@
-import {Container, Form} from "react-bootstrap";
+import {Button, Container, Form, Modal} from "react-bootstrap";
 import {IMCAttentionCheckQuestions, attentionCheckQuestions} from "./questions.ts";
+import React, {useState} from "react";
 
-export function AttentionCheck(stage: number) {
-    const questionSet = stage % 2 === 0 ? IMCAttentionCheckQuestions : attentionCheckQuestions
-    const ind = Math.floor(stage / 2)
+
+interface AttentionCheckProps {
+    currQuestion: number;
+    setIMCAnswers: React.Dispatch<React.SetStateAction<number[]>>;
+    setAttentionAnswers: React.Dispatch<React.SetStateAction<number[]>>
+    handleAttentionCheck: (num: number) => void
+    showAlertnessModal: boolean
+}
+
+export function AttentionCheck({
+                                   showAlertnessModal,
+                                   handleAttentionCheck,
+                               }: AttentionCheckProps) {
+    const [currQuestion, setCurrQuestion] = useState<number>(0)
+    const [chosenAnswer, setChosenAnswer] = useState<string>("")
+    const questionSet = currQuestion % 2 === 0 ? IMCAttentionCheckQuestions : attentionCheckQuestions
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setChosenAnswer(e.target.value)
+    }
+
+    const handleSubmit = () => {
+        handleAttentionCheck(parseInt(chosenAnswer))
+        setCurrQuestion(currQuestion+1)
+        setChosenAnswer("")
+    }
+
     return (
-        <Container>
-            <span>
-                {questionSet[ind].question}
-            </span>
-            <Form.Control
-                type="radio"
+        <Modal
+            animation={false}
+            show={showAlertnessModal}
+            centered={true}
+            backdrop="static"
+            keyboard={false}
+            autoFocus={true}
+            className="tw-select-none"
+        >
+            <Container className="tw-flex tw-flex-col tw-text-center">
 
-            >
+                <Container className="tw-h-32 tw-flex tw-items-center">
+                    <Container className=" tw-items-center tw-font-bold ">
+                        {questionSet[Math.floor(currQuestion / 2)].question}
+                    </Container>
+                </Container>
+                <Container className="tw-flex tw-flex-col">
+                    <Container className="tw-flex tw-justify-between">
+                        {questionSet[Math.floor(currQuestion / 2)].possibleAnswers.map((option, index) =>
 
+                            <div key={index} className="tw-flex tw-flex-col tw-items-center">
+                                <Form.Check
+                                    type="radio"
+                                    value={index}
+                                    onChange={handleChange}
+                                    checked={chosenAnswer === `${index}`}
+                                    id={`radio${index}`}
+                                    name="group1"
+                                    className=""
+                                />
+                                <label htmlFor={`radio${index}`}>{option}</label>
+                            </div>
+                        )}
+                    </Container>
 
-            </Form.Control>
-        </Container>
+                    <Button
+                        className="tw-my-4"
+                        variant="light"
+                        onClick={handleSubmit}
+                    >
+                        אישור
+                    </Button>
+                </Container>
+            </Container>
+        </Modal>
+
     );
 }
+
+export default AttentionCheck

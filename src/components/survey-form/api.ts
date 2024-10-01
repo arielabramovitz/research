@@ -8,7 +8,9 @@ export type SentenceSet = {
 export type ParticipantAnswers = {
     id: string;
     sessionId: string;
-    answers: ParticipantAnswer[];
+    IMCAnswers: number[];
+    attentionAnswers: number[];
+    answers: ParticipantAnswer;
 };
 
 export type ParticipantAnswer = {
@@ -44,7 +46,10 @@ export async function getSentenceSets(n: number): Promise<SentenceSet[]> {
 
 export async function uploadParticipantAnswers(answers: ParticipantAnswers) {
     const url = `${baseUrl}/answers/    `
-    return await fetch(url, {method: "POST", mode: "no-cors", headers:{"Content-type": "application/json"}, body: JSON.stringify(answers)}).then((response)=>response.status===200)
+    return await fetch(url, {method: "POST", mode: "no-cors", headers:{"Content-type": "application/json"}, body: JSON.stringify(answers)}).then((response)=> {
+        console.log(response)
+        return response.status === 200
+    })
 }
 
 

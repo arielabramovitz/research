@@ -62,9 +62,9 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                     <span
                                         className="tw-text-[#006D77] tw-my-2">{sentenceSet.prePartOne[ind]}</span>
                                     <div className="tw-flex tw-flex-col tw-px-0">
-                                        <span hidden={sentenceSet.preQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-my-2">{sentenceSet.preQuestion[ind]}</span>
+                                        {/*<span hidden={sentenceSet.preQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-mb-2">{sentenceSet.preQuestion[ind]}</span>*/}
 
-                                        <Container className="tw-flex-row tw-px-0 tw-flex tw-my-2">
+                                        <Container className="tw-flex-row tw-px-0 tw-flex tw-pb-3 tw-pt-2">
                                             <Form.Select
                                                 size="sm"
                                                 className="tw-outline tw-outline-1 tw-w-[40%]"
@@ -91,41 +91,59 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                         <div className="tw-flex tw-w-full">
 
                                             {(!sentenceSet.requiresCompletion[ind] ? <div className="tw-flex tw-flex-col">
-                                                <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-my-2">{sentenceSet.postQuestion[ind]}</span>
+                                                <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-mb-2">{sentenceSet.postQuestion[ind]}</span>
                                                 <span className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -4) : sentenceSet.tail[ind]}`}</b></span>
 
                                             </div> : (
 
                                                 <FormGroup
-                                                    className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                                    className="tw-flex tw-w-full tw-h-auto tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                                     <InputGroup
-                                                        className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                                        <span hidden={sentenceSet.preQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-my-2">{sentenceSet.preQuestion[ind]}</span>
+                                                        className="tw-flex tw-w-full tw-justify-start  tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
 
-                                                        <Form.Label className="">השאלה
-                                                            שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -3) : sentenceSet.tail[ind]}`}</b>
-                                                        </Form.Label>
-                                                        <Form.Control
-                                                            as="textarea"
-                                                            readOnly
-                                                            className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
-                                                            placeholder="השלימו את השאלה פה"
-                                                            rows={1}
-                                                            value={sentenceSet.completion === undefined ? "" : sentenceSet.completion[ind]}
-                                                        >
+                                                        <div className="tw-flex tw-flex-col tw-w-full">
+                                                            {/* Pre-Question */}
+                                                            <span
+                                                                hidden={sentenceSet.preQuestion[ind]?.length === 0}
+                                                                className="tw-text-[#006D77] tw-mb-2">
+                                                            {sentenceSet.preQuestion[ind]}
+                                                          </span>
 
-                                                        </Form.Control>
-                                                        <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-my-2">{sentenceSet.postQuestion[ind]}</span>
+                                                            {/* Side-by-Side Label and Textbox */}
+                                                            <div className="tw-flex tw-flex-row tw-w-full tw-mb-0 tw-h-[24px]">
+                                                                {/* Label */}
+                                                                <Form.Label className="tw-my-0">
+                                                                    השאלה שנוצרה:
+                                                                    <b>{` ${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -4) : sentenceSet.tail[ind]}`}</b>
+                                                                </Form.Label>
 
+                                                                {/* Text Area */}
+                                                                <Form.Control
+                                                                    as="textarea"
+                                                                    readOnly
+                                                                    className="tw-resize-none tw-py-0 tw-my-0 tw-px-1 tw-w-3/4 tw-border-0 tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                                                    placeholder="השלימו את השאלה פה"
+                                                                    rows={1}
+                                                                    value={sentenceSet.completion === undefined ? "" : sentenceSet.completion[ind]}
+                                                                />
+                                                            </div>
+
+                                                            {/* Post-Question */}
+                                                            <span
+                                                                hidden={sentenceSet.postQuestion[ind]?.length === 0}
+                                                                className="tw-text-[#006D77] tw-mt-2">
+                                                            {sentenceSet.postQuestion[ind]}
+                                                          </span>
+                                                        </div>
                                                     </InputGroup>
-
                                                 </FormGroup>
 
 
                                             ))}
                                         </div>
-                                        <span className="tw-pt-2">התשובה: <b>{sentenceSet.verb}</b></span>
-                                        <span className="tw-text-[#006D77]">{sentenceSet.postPartOne[ind]}</span>
+                                        <span className="">התשובה: <b>{sentenceSet.verb}</b></span>
+                                        <span className="tw-text-[#006D77] tw-pb-2">{sentenceSet.postPartOne[ind]}</span>
+                                        <span hidden={sentenceSet.betweenParts[ind]?.length === 0} className="tw-text-[#006D77]">{sentenceSet.betweenParts[ind]}</span>
 
                                         <label className="tw-my-2">
                                             <Form.Check
@@ -139,7 +157,6 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                         </label>
 
                                     </div>
-                                    <span className="tw-text-[#006D77]">{sentenceSet.betweenParts[ind]}</span>
 
                                     <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
                                         {!sentenceSet.followUp[ind] || sentenceSet.followUp[ind]?.length === 0 ?
@@ -152,27 +169,29 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                                     <span className="tw-underline tw-font-bold tw-pb-2">שלב שני:</span>
                                                     {sentenceSet.prePartTwo[ind].split("\n").map((part,ind)=>{
                                                         return (
-                                                            <span key={ind} className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
+                                                            <span key={ind} className="tw-text-[#006D77] tw-pb-2"><>{`${part}`}<br/></></span>
 
                                                         )
                                                     })}
                                                     {/*<span className="tw-whitespace-pre">{`${sentenceSet.prePartTwo[ind]}`}</span>*/}
                                                     {
                                                         !sentenceSet.preFollowUpQuestion[ind]?<></>:
-                                                            <div key={ind} className="tw-pt-2">
-                                                                <span className="tw-text-[#006D77]">{sentenceSet.preFollowUpQuestion[ind]}<br/></span>
-                                                                <span className="">שאלת המשך: </span>
-                                                                <span
-                                                                    className="h6 tw-py-4 tw-font-bold">{sentenceSet.followUp[ind]}</span>
+                                                            <div key={ind} className="tw-pb-2">
+                                                                <span className="tw-pb-2 tw-text-[#006D77]">{sentenceSet.preFollowUpQuestion[ind]}<br/></span>
+                                                                <div className="tw-pt-2">
+                                                                    <span className="tw-pb-2">שאלת המשך: </span>
+                                                                    <span
+                                                                        className="h6 tw-pb-2 tw-font-bold">{sentenceSet.followUp[ind]}</span>
+                                                                </div>
                                                             </div>
                                                     }
                                                     {sentenceSet.preFollowUpPair[ind]?.split("\n").map((part, ind)=>{
                                                         return (
-                                                            <span key={ind} className="tw-text-[#006D77]"><>{`${part}`}<br/></></span>
+                                                            <span key={ind} className="tw-text-[#006D77] tw-pb-2"><>{`${part}`}<br/></></span>
 
                                                         )
                                                     })}
-                                                    <div className="tw-pt-2">
+                                                    <div className="">
                                                         <span className="">שאלת המשך: </span>
                                                         <span
                                                             className="h6 tw-py-4 tw-font-bold">{sentenceSet.followUp[ind]}</span>
@@ -192,11 +211,11 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                                             >
                                                             </Form.Control>
                                                         </InputGroup>
-                                                        <span className="tw-text-[#006D77]">{sentenceSet.postFollowUpPair[ind]}</span>
+                                                        <span className="tw-text-[#006D77] tw-pb-2">{sentenceSet.postFollowUpPair[ind]}</span>
 
 
                                                     </FormGroup>
-                                                    <span className="tw-text-[#006D77]">{sentenceSet.postPartTwo[ind]}</span>
+                                                    <span className="tw-text-[#006D77] tw-pb-2">{sentenceSet.postPartTwo[ind]}</span>
 
                                                     <Container className="tw-px-0">
                                                         <Form.Check
@@ -224,26 +243,26 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
 
                                             )}
                                         <span
-                                            className="tw-text-[#006D77]">{sentenceSet.additional[ind]}</span>
+                                            className="tw-text-[#006D77] tw-pt-2">{sentenceSet.additional[ind]}</span>
 
                                     </Container>
                                     <div
                                         className={"tw-mt-8 tw-flex tw-w-full tw-justify-between tw-align-bottom"}>
                                         <Button
                                             size="sm"
-                                            active={!(sentenceSet.head.length - 1 === ind)}
-                                            disabled={sentenceSet.head.length - 1 === ind}
+                                            // active={!(sentenceSet.head.length - 1 === ind)}
+                                            // disabled={sentenceSet.head.length - 1 === ind}
                                             variant="success"
                                             className="tw-w-fit  tw-ml-2">
                                             שמור והוסף שאלה
                                         </Button>
                                         <Button
                                             size="sm"
-                                            active={sentenceSet.head.length - 1 === ind}
+                                            // active={sentenceSet.head.length - 1 === ind}
                                             disabled={!(sentenceSet.head.length - 1 === ind)}
                                             variant="primary"
                                             className="tw-w-fit tw-ml-2">
-                                            שמור והמשך לסט המשפטים הבא
+                                            המשך לסט המשפטים הבא
                                         </Button>
                                     </div>
                                 </div>

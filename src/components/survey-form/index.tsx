@@ -15,6 +15,7 @@ import QuestionTable from "./questionsTable.tsx";
 import {Params, useParams, useSearchParams} from 'react-router-dom';
 import {ChevronLeft, ChevronRight} from "react-bootstrap-icons";
 import {AttentionCheck} from "./AttentionCheck.tsx";
+import {useInitialization} from "../../hooks/useInitialization.ts";
 
 export type TableRow = {
     setNumber: number,
@@ -27,7 +28,20 @@ export type TableRow = {
     tailIndex: number;
 };
 
-function SurveyForm() {
+const ATTENTION_CHECK_INTERVAL = 5;
+const MAX_IMC_MISTAKES = 2;
+const TOTAL_SETS = 30;
+const REQUIRED_CORRECT_COUNT = 6;
+
+const STORAGE_KEYS = {
+    IMC_ANSWERS: "IMCAnswers",
+    ATTENTION_ANSWERS: "AttentionAnswers",
+    IMC_MISTAKES: "IMCMistakeCount",
+    ALERTNESS_COUNT: "alertnessCorrectCount",
+    SHOW_MODAL: "showAlertnessModal"
+} as const;
+
+function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
 
 
     const [params] = useSearchParams();
@@ -43,7 +57,7 @@ function SurveyForm() {
     const tailRef = useRef<HTMLSelectElement | null>(null);
     const followUpAnswerRef = useRef<HTMLTextAreaElement | null>(null);
     const tailCompletionRef = useRef<HTMLTextAreaElement | null>(null);
-
+    const surveyRef = useRef<HTMLDivElement | null>(null);
     const [sentenceSets, setSentenceSets] = useState<SentenceSet[]>([]);
     const [currSet, setCurrSet] = useState<number>(0);
     const [requiresCompletion, setRequiresCompletion] = useState<boolean>(false);
@@ -66,7 +80,7 @@ function SurveyForm() {
     const [tableRows, setTableRows] = useState<TableRow[]>([]);
     const [tailCompletion, setTailCompletion] = useState<string>("");
     const [boldedVerbsInds, setBoldedVerbsInds] = useState<number[]>([]);
-    const [showFinishModal, setShowFinishModal] = useState<boolean>(false)
+    const [doRedirect, setDoRedirect] = useState<boolean>(false)
 
 
     const handleSelectHead = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -97,53 +111,95 @@ function SurveyForm() {
     };
 
 
-    const handleRedirect = (code: string)=>{
+    const handleRedirect = (code: string) => {
         alert(`redirecting to ${Object.keys({code})[0]}`)
         // window.location.href = prolificBaseUrl + code
     }
+    // const handleNextSet = async () => {
+    //     handleUpload()
+    //     sessionStorage.setItem("currSet", (currSet + 1).toString())
+    //     setCurrSet(currSet + 1)
+    //     if ((currSet + 2) % 5 === 0) {
+    //         sessionStorage.setItem("showAlertnessModal", "true")
+    //         setShowAlertnessModal(true)
+    //     }
+    //     if (currSet === 30) {
+    //         if (alertnessCorrectCount === 6) {
+    //             handleRedirect(completedWithSixCorrect)
+    //         } else {
+    //             handleRedirect(endedWithMistakes)
+    //         }
+    //     }
+    //
+    // }
+
     const handleNextSet = async () => {
-        handleUpload()
-        sessionStorage.setItem("currSet", (currSet+1).toString())
-        if (currSet > 0 && (currSet + 2) % 5 === 0) {
-            sessionStorage.setItem("showAlertnessModal", "true")
-            setShowAlertnessModal(true)
-        }
-        setCurrSet(currSet + 1)
-        if (currSet === 30) {
-            if (alertnessCorrectCount===6) {
-                handleRedirect(completedWithSixCorrect)
-            } else {
-                handleRedirect(endedWithMistakes)
-            }
+        // Upload current progress
+        await handleUpload();
+
+        const nextSet = currSet + 1;
+        sessionStorage.setItem("currSet", nextSet.toString());
+        setCurrSet(nextSet);
+
+        // Check if we need to show attention check
+        if ((nextSet % ATTENTION_CHECK_INTERVAL === 0) && nextSet < TOTAL_SETS) {
+            sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "true");
+            setShowAlertnessModal(true);
         }
 
+        // Check if we've reached the end
+        if (nextSet === TOTAL_SETS) {
+            handleRedirect(
+                alertnessCorrectCount === REQUIRED_CORRECT_COUNT
+                    ? completedWithSixCorrect
+                    : endedWithMistakes
+            );
+        }
+    };
 
-    }
 
     const handleAttentionCheck = (answer: number) => {
-        setShowAlertnessModal(false)
-        const questionNum = (currSet / 5)
-        const choose = questionNum % 2 === 0
-        const currQuestionSet = choose ? IMCAttentionCheckQuestions : attentionCheckQuestions
-        const currIndex = Math.floor(questionNum / 2)
-        const currSetter = choose ? setIMCAnswers : setAttentionAnswers
-        currSetter((prevState: number[]) => [...prevState, answer])
-        sessionStorage.setItem(choose ? "IMCAnswers" : "AttentionAnswers", JSON.stringify(choose ? IMCAnswers : attentionAnswers))
-        if (answer === currQuestionSet[currIndex].correctAnswerIndex) {
-            setAlertnessCorrectCount(alertnessCorrectCount + 1)
-            sessionStorage.setItem("alertnessCorrectCount", alertnessCorrectCount.toString())
-        } else if (choose) {
-            if (IMCMistakeCount === 1) {
-                // TODO: check if i should show a redirection spinner before redirecting.
-                // window.location.href = prolificBaseUrl + rejection
-                alert("2 mistakes in IMC")
-            }
-            setIMCMistakeCount(IMCMistakeCount + 1)
-            sessionStorage.setItem("IMCMistakeCount", IMCMistakeCount.toString())
-        }
-        sessionStorage.setItem("showAlertnessModal", "false")
+        setShowAlertnessModal(false);
+        sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "false");
 
-    }
+        const questionNum = Math.floor((currSet + 1) / ATTENTION_CHECK_INTERVAL);
+        const isIMCQuestion = questionNum % 2 === 0;
+        const currIndex = Math.floor(questionNum / 2);
+
+        const currQuestionSet = isIMCQuestion
+            ? IMCAttentionCheckQuestions
+            : attentionCheckQuestions;
+
+
+        if (isIMCQuestion) {
+            setIMCAnswers(prevAnswers => {
+                const newAnswers = [...prevAnswers, answer];
+                sessionStorage.setItem(STORAGE_KEYS.IMC_ANSWERS, JSON.stringify(newAnswers));
+                return newAnswers;
+            });
+        } else {
+            setAttentionAnswers(prevAnswers => {
+                const newAnswers = [...prevAnswers, answer];
+                sessionStorage.setItem(STORAGE_KEYS.ATTENTION_ANSWERS, JSON.stringify(newAnswers));
+                return newAnswers;
+            });
+        }
+        // Check if answer is correct
+        if (answer === currQuestionSet[currIndex].correctAnswerIndex) {
+            const newCount = alertnessCorrectCount + 1;
+            setAlertnessCorrectCount(newCount);
+            sessionStorage.setItem(STORAGE_KEYS.ALERTNESS_COUNT, newCount.toString());
+        } else if (isIMCQuestion) {
+            const newIMCMistakes = IMCMistakeCount + 1;
+            setIMCMistakeCount(newIMCMistakes);
+            sessionStorage.setItem(STORAGE_KEYS.IMC_MISTAKES, newIMCMistakes.toString());
+
+            // Check for immediate rejection
+            if (newIMCMistakes >= MAX_IMC_MISTAKES) {
+                handleRedirect(rejection);
+            }
+        }
+    };
 
     const handleTextSelect = (e: React.MouseEvent<HTMLElement>) => {
         const highlighted = window.getSelection()?.toString();
@@ -161,6 +217,7 @@ function SurveyForm() {
         e.target.style.height = e.target.scrollHeight + 'px';
         setHighlightedAnswer(e.target.value)
     }
+
 
     const handleTailCompletionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.target.value += "?"
@@ -210,13 +267,12 @@ function SurveyForm() {
     };
 
     const handleUpload = () => {
-        // TODO: replace logic with calling upload per sentence set change && change
         if (id && sessionId) {
             const userAnswers: ParticipantAnswers = {
                 id: id, sessionId: sessionId,
                 IMCAnswers: IMCAnswers,
-                attentionAnswers: attentionAnswers,
-                answers: {
+                AttentionAnswers: attentionAnswers,
+                answers: [{
                     sentenceSetId: sentenceSets[currSet].id,
                     first: sentenceSets[currSet].sentences[0],
                     second: sentenceSets[currSet].sentences[1],
@@ -230,7 +286,7 @@ function SurveyForm() {
                             followUpAnswer: row.followupAnswer || ""
                         }
                     })
-                }
+                }]
             }
 
 
@@ -297,59 +353,110 @@ function SurveyForm() {
         return true;
     }
 
+    const handleFinish = () => {
+
+    }
+
     useEffect(() => {
-        const load = async () => {
-            const cachedSets = sessionStorage.getItem('sentenceSets');
-            const cachedTable = sessionStorage.getItem("tableRows");
-            const boldedInds = sessionStorage.getItem("boldedInds");
-            const setInd = sessionStorage.getItem("currSet");
-            const savedImc = sessionStorage.getItem("IMCAnswers");
-            const savedAttention = sessionStorage.getItem("AttentionAnswers");
-            const imcMistakes = sessionStorage.getItem("IMCMistakes");
-            const savedShowAlertnessModal = sessionStorage.getItem("showAlertnessModal");
-            const alertnessCorrectCount = sessionStorage.getItem("alertnessCorrectCount");
-            setIMCAnswers(savedImc ? JSON.parse(savedImc) : [])
-            setAttentionAnswers(savedAttention ? JSON.parse(savedAttention) : [])
-            setIMCMistakeCount(imcMistakes ? JSON.parse(imcMistakes) : 0)
-            setShowAlertnessModal(savedShowAlertnessModal ? JSON.parse(savedShowAlertnessModal) : false)
-            setAlertnessCorrectCount(alertnessCorrectCount ? JSON.parse(alertnessCorrectCount) : 0)
+        if (!hideSurvey && IMCAnswers.length === 0) {
+            console.log("TEST")
+            setShowAlertnessModal(true);
+            sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "true");
+        }
+    }, [hideSurvey, IMCAnswers]);
 
-            if (!cachedSets) {
-                const sets = await getSentenceSets(30);
-                setSentenceSets(sets);
+    // useEffect(() => {
+    //     const load = async () => {
+    //         const cachedSets = sessionStorage.getItem('sentenceSets');
+    //         const cachedTable = sessionStorage.getItem("tableRows");
+    //         const boldedInds = sessionStorage.getItem("boldedInds");
+    //         const setInd = sessionStorage.getItem("currSet");
+    //         const savedImc = sessionStorage.getItem("IMCAnswers");
+    //         const savedAttention = sessionStorage.getItem("AttentionAnswers");
+    //         const imcMistakes = sessionStorage.getItem("IMCMistakes");
+    //         const savedShowAlertnessModal = sessionStorage.getItem("showAlertnessModal");
+    //         const alertnessCorrectCount = sessionStorage.getItem("alertnessCorrectCount");
+    //         setIMCAnswers(savedImc ? JSON.parse(savedImc) : [])
+    //         setAttentionAnswers(savedAttention ? JSON.parse(savedAttention) : [])
+    //         setIMCMistakeCount(imcMistakes ? JSON.parse(imcMistakes) : 0)
+    //         setAlertnessCorrectCount(alertnessCorrectCount ? JSON.parse(alertnessCorrectCount) : 0)
+    //         setShowAlertnessModal(savedShowAlertnessModal ? JSON.parse(savedShowAlertnessModal) : false)
+    //         if (!cachedSets) {
+    //             const sets = await getSentenceSets(30);
+    //             setSentenceSets(sets);
+    //
+    //             const inds = sets.map((set: SentenceSet) =>
+    //                 Math.floor(Math.random() * set.verbs.length)
+    //             );
+    //             setBoldedVerbsInds(inds);
+    //             setCurrSet(0);
+    //             setBoldedVerb(sets[0].verbs[inds[0]]);
+    //             sessionStorage.setItem("sentenceSets", JSON.stringify(sets));
+    //             sessionStorage.setItem("boldedInds", JSON.stringify(inds));
+    //             sessionStorage.setItem("showAlertnessModal", JSON.stringify(true));
+    //
+    //         } else {
+    //             setSentenceSets(JSON.parse(cachedSets))
+    //             if (cachedTable) {
+    //                 setTableRows(JSON.parse(cachedTable))
+    //             }
+    //             if (boldedInds) {
+    //                 setBoldedVerbsInds(JSON.parse(boldedInds))
+    //             }
+    //             if (setInd)
+    //                 setCurrSet(parseInt(setInd))
+    //             if (savedShowAlertnessModal) {
+    //                 setShowAlertnessModal(JSON.parse(savedShowAlertnessModal))
+    //             }
+    //         }
+    //
+    //
+    //     };
+    //
+    //     load();
+    // }, []);
 
-                const inds = sets.map((set: SentenceSet) =>
-                    Math.floor(Math.random() * set.verbs.length)
-                );
-                setBoldedVerbsInds(inds);
-                setCurrSet(0);
-                setBoldedVerb(sets[0].verbs[inds[0]]);
+    useInitialization({
 
-                sessionStorage.setItem("sentenceSets", JSON.stringify(sets));
-                sessionStorage.setItem("boldedInds", JSON.stringify(inds));
-            } else {
-                setSentenceSets(JSON.parse(cachedSets))
-                if (cachedTable) {
-                    setTableRows(JSON.parse(cachedTable))
-                }
-                if (boldedInds) {
-                    setBoldedVerbsInds(JSON.parse(boldedInds))
-                }
-                if (setInd)
-                    setCurrSet(parseInt(setInd))
-            }
-        };
+        setSentenceSets,
+        setCurrSet,
+        setIMCAnswers,
+        setAttentionAnswers,
+        setIMCMistakeCount,
+        setAlertnessCorrectCount,
+        setShowAlertnessModal,
+        setTableRows,
+        setBoldedVerbsInds,
+        setBoldedVerb
 
-        load();
-    }, []);
+    });
+
+    useEffect(() => {
+        console.log('AttentionAnswers updated:', attentionAnswers);
+    }, [attentionAnswers]);
+
+    useEffect(() => {
+        console.log('IMCAnswers updated:', IMCAnswers);
+    }, [IMCAnswers]);
+
+    useEffect(() => {
+        if (doRedirect) {
+            handleRedirect(alertnessCorrectCount === 6 ? completedWithSixCorrect : endedWithMistakes)
+        }
+    }, [doRedirect])
 
     useEffect(() => {
         setBoldedVerb(sentenceSets[currSet]?.verbs[boldedVerbsInds[currSet]])
     }, [currSet, boldedVerbsInds])
 
+
     function handleSetChange(isLeft: boolean) {
         if (isLeft) {
-            handleNextSet()
+            if ((currSet + 1) % 5 === 0) {
+                console.log(currSet)
+                setShowAlertnessModal(true)
+            }
+            setCurrSet(currSet + 1)
         } else {
             setCurrSet(currSet - 1)
         }
@@ -358,22 +465,6 @@ function SurveyForm() {
     const filteredRows = useMemo(() => {
         return tableRows.filter((row: TableRow) => row.setNumber === currSet + 1);
     }, [tableRows, currSet]);
-
-
-    const [openDev, setOpenDev] = useState(false)
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'F2') {
-                setOpenDev((prevState) => !prevState)
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
 
     return (
         <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full tw-pb-8 ">
@@ -390,233 +481,239 @@ function SurveyForm() {
                                 variant="outline-dark"><ChevronLeft/></Button>
                     </ButtonGroup>
                 </div>
-                <Container className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
+                {currSet < 30 ? (<Container ref={surveyRef} className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
 
 
-                    <div className="tw-pb-8">
-                        הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br></br> השאלות מנוסחות בזמן הווה אך
-                        מתייחסות גם לעתיד
-                        או עבר.
-                    </div>
+                        <div className="tw-pb-8">
+                            הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br></br> השאלות מנוסחות בזמן הווה אך
+                            מתייחסות גם לעתיד
+                            או עבר.
+                        </div>
 
 
-                    <Card className="bd tw-h-fit tw-min-h-32 tw-p-4 tw-overflow-y-hidden tw-select-text"
-                          onMouseUp={handleTextSelect}>
+                        <Card className="bd tw-h-fit tw-min-h-32 tw-p-4 tw-overflow-y-hidden tw-select-text"
+                              onMouseUp={handleTextSelect}>
 
-                        {sentenceSets.length === 0 ? (
-                            <div className="tw-flex">
-                                <div className="tw-flex tw-items-center tw-justify-center">
+                            {sentenceSets.length === 0 ? (
+                                <div className="tw-flex">
+                                    <div className="tw-flex tw-items-center tw-justify-center">
 
-                                    <Spinner animation="border"></Spinner>
+                                        <Spinner animation="border"></Spinner>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="">
+                            ) : (
+                                <div className="">
 
-                                <div>
-                                    <span>{`${sentenceSets[currSet].sentences[0]} `}</span>
-                                    <span
-                                        className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
-                                        dangerouslySetInnerHTML={{
-                                            __html: sentenceSets[currSet].sentences[1].split(" ").map((word: string) => {
-                                                if (word.includes(sentenceSets[currSet].verbs[boldedVerbsInds[currSet]])) {
-                                                    return `<b>${word}</b>`
-                                                } else return word
-                                            }).join(" "),
-                                        }}></span>
-                                    <span>{` ${sentenceSets[currSet].sentences[2]}`}</span>
-                                </div>
-
-                            </div>
-                        )}
-                    </Card>
-                    <Container className="tw-flex-row tw-px-0 tw-flex tw-my-2">
-                        <label hidden>בחר רישה לשאלה</label>
-                        <Form.Select
-                            size="sm"
-                            onChange={handleSelectHead}
-                            className="tw-outline tw-outline-1 tw-w-[40%]"
-                            aria-label=".form-select-sm"
-                            name="questionHead"
-                            ref={headRef}
-                            value={questionHead}
-
-                        >
-                            {heads.map((val, i) => (
-                                <option key={i} value={val}>
-                                    {val}
-                                </option>
-                            ))}
-                        </Form.Select>
-
-                        <label hidden>בחר סיפה לשאלה</label>
-                        <Form.Select
-                            size="sm"
-                            onChange={handleSelectTail}
-                            className="tw-outline tw-outline-1 tw-w-full tw-mr-4"
-                            aria-label=".form-select-sm"
-                            name="questionTail"
-
-                            ref={tailRef}
-                            value={tailIndex}
-                        >
-
-                            {tails.map((val, i) => (
-                                <option key={i} value={i}>
-                                    {val.tail}
-                                </option>
-                            ))}
-                        </Form.Select>
-                    </Container>
-                    {questionHead.length === 0 || questionTail.length === 0 ? (
-                        <></>
-                    ) : (
-                        <Container className="tw-flex tw-flex-col tw-px-0 tw-pt-4">
-                            <div className="tw-flex tw-flex-col">
-                                {(!requiresCompletion ? <>
-                                    <span className="">השאלה שנוצרה: <b>{`${questionHead} ${questionTail}`}</b></span>
-                                </> : (
-                                    <div className="tw-flex tw-flex-row tw-w-full">
-                                        {/*<input*/}
-                                        {/*    type="textarea"*/}
-                                        {/*    maxLength={64}*/}
-                                        {/*    id="tailCompletion"*/}
-                                        {/*    className="tw-min-w-fit tw-w-auto tw-px-1 tw-mt-2 tw-border-0 tw-underline"*/}
-                                        {/*    required*/}
-                                        {/*    value={tailCompletion}*/}
-                                        {/*    onChange={(e) => {*/}
-                                        {/*        setTailCompletion(e.target.value);*/}
-                                        {/*    }}*/}
-                                        {/*    placeholder="המשך\י את השאלה פה"*/}
-                                        {/*/>*/}
-                                        <FormGroup
-                                            className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                            <InputGroup
-                                                className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-
-                                                <Form.Label
-                                                    className="tw-my-0">השאלה
-                                                    שנוצרה: <b>{`${questionHead} ${questionTail.slice(0, -4)}`}</b></Form.Label>
-                                                <Form.Control
-                                                    as="textarea"
-                                                    className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
-                                                    placeholder="השלימו את השאלה פה"
-                                                    value={tailCompletion}
-                                                    ref={tailCompletionRef}
-
-                                                    onChange={(e) => {
-                                                        setTailCompletion(e.target.value)
-                                                    }}
-                                                    rows={1}
-                                                />
-                                            </InputGroup>
-                                        </FormGroup>
-
+                                    <div>
+                                        <span>{`${sentenceSets[currSet]?.sentences[0]} `}</span>
+                                        <span
+                                            className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
+                                            dangerouslySetInnerHTML={{
+                                                __html: sentenceSets[currSet]?.sentences[1].split(" ").map((word: string) => {
+                                                    if (word.includes(sentenceSets[currSet]?.verbs[boldedVerbsInds[currSet]])) {
+                                                        return `<b>${word}</b>`
+                                                    } else return word
+                                                }).join(" "),
+                                            }}></span>
+                                        <span>{` ${sentenceSets[currSet]?.sentences[2]}`}</span>
                                     </div>
 
+                                </div>
+                            )}
+                        </Card>
+                        <Container className="tw-flex-row tw-px-0 tw-flex tw-my-2">
+                            <label hidden>בחר רישה לשאלה</label>
+                            <Form.Select
+                                size="sm"
+                                onChange={handleSelectHead}
+                                className="tw-outline tw-outline-1 tw-w-[40%]"
+                                aria-label=".form-select-sm"
+                                name="questionHead"
+                                ref={headRef}
+                                value={questionHead}
+
+                            >
+                                {heads.map((val, i) => (
+                                    <option key={i} value={val}>
+                                        {val}
+                                    </option>
                                 ))}
-                            </div>
-                            <span className="tw-pt-2">התשובה: <b>{boldedVerb}</b></span>
-                            <label className="tw-mt-2">
-                                <Form.Check
-                                    onChange={() => {
-                                        setFollowUpAnswerChecked(0)
-                                        setChecked(!checked);
-                                    }}
-                                    checked={checked}
-                                    required
-                                    className="tw-opacity-50 tw-ml-1 tw-align-baseline "
-                                    type="checkbox"
-                                    inline></Form.Check>
-                                התשובה עונה על השאלה
-                            </label>
+                            </Form.Select>
+
+                            <label hidden>בחר סיפה לשאלה</label>
+                            <Form.Select
+                                size="sm"
+                                onChange={handleSelectTail}
+                                className="tw-outline tw-outline-1 tw-w-full tw-mr-4"
+                                aria-label=".form-select-sm"
+                                name="questionTail"
+
+                                ref={tailRef}
+                                value={tailIndex}
+                            >
+
+                                {tails.map((val, i) => (
+                                    <option key={i} value={i}>
+                                        {val.tail}
+                                    </option>
+                                ))}
+                            </Form.Select>
                         </Container>
-                    )}
-                    <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
-                        {followUp.length === 0 || questionHead.length === 0 || !checked ? (
+                        {questionHead.length === 0 || questionTail.length === 0 ? (
                             <></>
                         ) : (
-                            <div className="tw-pt-8 tw-flex tw-flex-col tw-mx-0 tw-h-full tw-w-full">
-                                <div className="tw-border-t-2 tw-border-[#000] tw-border-opacity-25 tw-pt-8"></div>
-                                <div className="">
-                                    <span className="tw-mt-4">שאלת המשך: </span>
-                                    <span className="h6 tw-py-4 tw-font-bold">{followUp}</span>
+                            <Container className="tw-flex tw-flex-col tw-px-0 tw-pt-4">
+                                <div className="tw-flex tw-flex-col">
+                                    {(!requiresCompletion ? <>
+                                        <span className="">השאלה שנוצרה: <b>{`${questionHead} ${questionTail}`}</b></span>
+                                    </> : (
+                                        <div className="tw-flex tw-flex-row tw-w-full">
+                                            {/*<input*/}
+                                            {/*    type="textarea"*/}
+                                            {/*    maxLength={64}*/}
+                                            {/*    id="tailCompletion"*/}
+                                            {/*    className="tw-min-w-fit tw-w-auto tw-px-1 tw-mt-2 tw-border-0 tw-underline"*/}
+                                            {/*    required*/}
+                                            {/*    value={tailCompletion}*/}
+                                            {/*    onChange={(e) => {*/}
+                                            {/*        setTailCompletion(e.target.value);*/}
+                                            {/*    }}*/}
+                                            {/*    placeholder="המשך\י את השאלה פה"*/}
+                                            {/*/>*/}
+                                            <FormGroup
+                                                className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                                <InputGroup
+                                                    className="tw-flex tw-w-full tw-align-top tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+
+                                                    <Form.Label
+                                                        className="tw-my-0">השאלה
+                                                        שנוצרה: <b>{`${questionHead} ${questionTail.slice(0, -4)}`}</b></Form.Label>
+                                                    <Form.Control
+                                                        as="textarea"
+                                                        className="tw-resize-none tw-py-0 tw-px-2 tw-w-full tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                                        placeholder="השלימו את השאלה פה"
+                                                        value={tailCompletion}
+                                                        ref={tailCompletionRef}
+
+                                                        onChange={(e) => {
+                                                            setTailCompletion(e.target.value)
+                                                        }}
+                                                        rows={1}
+                                                    />
+                                                </InputGroup>
+                                            </FormGroup>
+
+                                        </div>
+
+                                    ))}
+                                </div>
+                                <span className="tw-pt-2">התשובה: <b>{boldedVerb}</b></span>
+                                <label className="tw-mt-2">
+                                    <Form.Check
+                                        onChange={() => {
+                                            setFollowUpAnswerChecked(0)
+                                            setChecked(!checked);
+                                        }}
+                                        checked={checked}
+                                        required
+                                        className="tw-opacity-50 tw-ml-1 tw-align-baseline "
+                                        type="checkbox"
+                                        inline></Form.Check>
+                                    התשובה עונה על השאלה
+                                </label>
+                            </Container>
+                        )}
+                        <Container className="tw-flex tw-flex-col tw-px-0 tw-h-full">
+                            {followUp.length === 0 || questionHead.length === 0 || !checked ? (
+                                <></>
+                            ) : (
+                                <div className="tw-pt-8 tw-flex tw-flex-col tw-mx-0 tw-h-full tw-w-full">
+                                    <div className="tw-border-t-2 tw-border-[#000] tw-border-opacity-25 tw-pt-8"></div>
+                                    <div className="">
+                                        <span className="tw-mt-4">שאלת המשך: </span>
+                                        <span className="h6 tw-py-4 tw-font-bold">{followUp}</span>
+                                    </div>
+
+                                    <FormGroup
+                                        className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                        <InputGroup
+                                            className="tw-flex tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
+                                            <FormLabel className="tw-my-2">התשובה: </FormLabel>
+                                            <Form.Control
+                                                as="textarea"
+                                                className="tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
+                                                placeholder="סמנו את התשובה בטקסט או הקלידו אותה כאן"
+                                                ref={followUpAnswerRef}
+                                                value={highlightedAnswer}
+                                                onChange={handleFollowUpChange}
+                                                rows={1}
+                                            >
+
+                                            </Form.Control>
+                                        </InputGroup>
+
+                                    </FormGroup>
+                                    <Container className="tw-px-0">
+                                        <Form.Check
+                                            onChange={() => {
+                                                setFollowUpAnswerChecked(1)
+                                            }}
+                                            checked={followUpAnswerChecked === 1}
+                                            required
+                                            className=""
+                                            name="followUpAnswerCheck"
+                                            type="radio"
+                                            inline
+                                            label="התשובה עונה על השאלה"
+                                        />
+
+                                        <Form.Check
+                                            onChange={() => {
+                                                setFollowUpAnswerChecked(2)
+                                            }}
+                                            required
+                                            checked={followUpAnswerChecked === 2}
+                                            className=""
+                                            name="followUpAnswerCheck"
+                                            type="radio"
+                                            inline
+                                            label="אין בטקסט תשובה לשאלת ההמשך"
+                                        />
+                                    </Container>
                                 </div>
 
-                                <FormGroup
-                                    className="tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                    <InputGroup
-                                        className="tw-flex tw-justify-start tw-h-full tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
-                                        <FormLabel className="tw-my-2">התשובה: </FormLabel>
-                                        <Form.Control
-                                            as="textarea"
-                                            className="tw-resize-none tw-border-0  tw-overflow-hidden tw-underline hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none"
-                                            placeholder="סמנו את התשובה בטקסט או הקלידו אותה כאן"
-                                            ref={followUpAnswerRef}
-                                            value={highlightedAnswer}
-                                            onChange={handleFollowUpChange}
-                                            rows={1}
-                                        >
+                            )}
 
-                                        </Form.Control>
-                                    </InputGroup>
+                        </Container>
+                        <div className="tw-flex tw-w-full tw-justify-between tw-mt-8">
 
-                                </FormGroup>
-                                <Container className="tw-px-0">
-                                    <Form.Check
-                                        onChange={() => {
-                                            setFollowUpAnswerChecked(1)
-                                        }}
-                                        checked={followUpAnswerChecked === 1}
-                                        required
-                                        className=""
-                                        name="followUpAnswerCheck"
-                                        type="radio"
-                                        inline
-                                        label="התשובה עונה על השאלה"
-                                    />
+                            <Button
+                                onClick={() => handleSave()}
+                                size="sm"
+                                disabled={handleDisabledSave()}
+                                variant="success"
+                                className={questionHead.length === 0 || questionTail.length === 0 ? "tw-invisible" : "tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg"}>
+                                שמור והוסף שאלה
+                            </Button>
+                            {filteredRows.length === 0 ? <></> :
+                                <Button
+                                    onClick={() => handleNextSet()}
+                                    disabled={!handleDisabledSave() || questionHead.length > 0 || tailCompletion.length > 0}
+                                    size="sm"
+                                    variant="primary"
+                                    className=" tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
+                                    {currSet < 29 ? "המשך לסט המשפטים הבא" : "סיים"}
+                                </Button>}
 
-                                    <Form.Check
-                                        onChange={() => {
-                                            setFollowUpAnswerChecked(2)
-                                        }}
-                                        required
-                                        checked={followUpAnswerChecked === 2}
-                                        className=""
-                                        name="followUpAnswerCheck"
-                                        type="radio"
-                                        inline
-                                        label="אין בטקסט תשובה לשאלת ההמשך"
-                                    />
-                                </Container>
-                            </div>
 
-                        )}
+                        </div>
+                    </Container>) :
+                    <Container>
+                        <h4>{currSet}</h4>
 
                     </Container>
-                    <div className="tw-flex tw-w-full tw-justify-between tw-mt-8">
 
-                        <Button
-                            onClick={() => handleSave()}
-                            size="sm"
-                            disabled={handleDisabledSave()}
-                            variant="success"
-                            className={questionHead.length === 0 || questionTail.length === 0 ? "tw-invisible" : "tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg"}>
-                            שמור והוסף שאלה
-                        </Button>
-                        {filteredRows.length === 0 ? <></> :
-                            <Button
-                                onClick={() => handleNextSet()}
-                                disabled={!handleDisabledSave() || questionHead.length > 0 || tailCompletion.length > 0}
-                                size="sm"
-                                variant="primary"
-                                className=" tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg">
-                                {currSet < 29 ? "המשך לסט המשפטים הבא" : "סיים"}
-                            </Button>}
-
-
-                    </div>
-                </Container>
+                }
 
 
             </Card>
@@ -628,57 +725,17 @@ function SurveyForm() {
                     handleEditClick={handleEditClick}
                     handleDeleteClick={handleDeleteClick}></QuestionTable>
             )}
-
-            <Modal
-                show={showFinishModal}
-                backdrop="static"
-            >
-                <Modal.Dialog>
-
-                    <Modal.Body>
-                        <div className="tw-flex tw-align-middle tw-justify-center">
-                            <div>מיד תועבר/י חזרה לפרוליפיק</div>
-                            <Spinner/>
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button onClick={handleUpload}>הגש</Button>
-                        <Button onClick={() => {
-                            setShowFinishModal(false)
-                        }}>בטל</Button>
-                    </Modal.Footer>
-                </Modal.Dialog>
-            </Modal>
-            {
+            {currSet <= 25 ?
                 <AttentionCheck
+                    currSet={currSet}
                     showAlertnessModal={showAlertnessModal}
                     handleAttentionCheck={handleAttentionCheck}
-                    currQuestion={currQuestion}
-                    setIMCAnswers={setIMCAnswers}
-                    setAttentionAnswers={setAttentionAnswers}
-                />
+                /> :
+                <></>
 
             }
 
-            <Offcanvas placement="end" show={openDev}>
-                <Offcanvas.Body>
-                    <Container className="tw-flex tw-justify-center tw-align-middle ">
-                        <Row>
-                            <Col>
-                                <Button onClick={() => {}}>
-                                    Upload
-                                </Button>
-                            </Col>
-                            <Col>
-                                <Button onClick={() => {}}>
-                                    Upload
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Container>
 
-                </Offcanvas.Body>
-            </Offcanvas>
         </Container>
 
     );

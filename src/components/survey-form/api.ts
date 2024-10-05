@@ -9,8 +9,8 @@ export type ParticipantAnswers = {
     id: string;
     sessionId: string;
     IMCAnswers: number[];
-    attentionAnswers: number[];
-    answers: ParticipantAnswer;
+    AttentionAnswers: number[];
+    answers: ParticipantAnswer[];
 };
 
 export type ParticipantAnswer = {

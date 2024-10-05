@@ -25,7 +25,12 @@ const CustomDiv = ({children, className, style, contentClassName}: CustomDivProp
 function App() {
     const [showInstructionsModal, setShowInstructionsModal] = useState<boolean>(true)
     const [showExamplesModal, setShowExamplesModal] = useState<boolean>(false)
+    const [hideSurvey, setHideSurvey] = useState<boolean>(true)
 
+    useEffect(()=>{
+        setHideSurvey(showExamplesModal||showInstructionsModal)
+
+    },[showExamplesModal, showInstructionsModal])
 
     useEffect(() => {
         const readInstruction = sessionStorage.getItem('readInstructions')
@@ -87,7 +92,7 @@ function App() {
                             <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
                         </Row>
                         <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + "tw-h-full"}>
-                            <SurveyForm></SurveyForm>
+                            <SurveyForm hideSurvey={hideSurvey}></SurveyForm>
                         </Row>
 
                     </Container>

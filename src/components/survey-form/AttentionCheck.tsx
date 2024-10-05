@@ -4,14 +4,13 @@ import React, {useState} from "react";
 
 
 interface AttentionCheckProps {
-    currQuestion: number;
-    setIMCAnswers: React.Dispatch<React.SetStateAction<number[]>>;
-    setAttentionAnswers: React.Dispatch<React.SetStateAction<number[]>>
     handleAttentionCheck: (num: number) => void
     showAlertnessModal: boolean
+    currSet: number
 }
 
 export function AttentionCheck({
+                                   currSet,
                                    showAlertnessModal,
                                    handleAttentionCheck,
                                }: AttentionCheckProps) {
@@ -25,7 +24,7 @@ export function AttentionCheck({
 
     const handleSubmit = () => {
         handleAttentionCheck(parseInt(chosenAnswer))
-        setCurrQuestion(currQuestion+1)
+        setCurrQuestion(prev=>prev+1)
         setChosenAnswer("")
     }
 
@@ -43,12 +42,12 @@ export function AttentionCheck({
 
                 <Container className="tw-h-32 tw-flex tw-items-center">
                     <Container className=" tw-items-center tw-font-bold ">
-                        {questionSet[Math.floor(currQuestion / 2)].question}
+                        {questionSet[Math.floor(currQuestion / 2)]?.question||""}
                     </Container>
                 </Container>
                 <Container className="tw-flex tw-flex-col">
                     <Container className="tw-flex tw-justify-between">
-                        {questionSet[Math.floor(currQuestion / 2)].possibleAnswers.map((option, index) =>
+                        {questionSet[Math.floor(currQuestion / 2)]?.possibleAnswers?.map((option, index) =>
 
                             <div key={index} className="tw-flex tw-flex-col tw-items-center">
                                 <Form.Check
@@ -60,7 +59,7 @@ export function AttentionCheck({
                                     name="group1"
                                     className=""
                                 />
-                                <label htmlFor={`radio${index}`}>{option}</label>
+                                <label htmlFor={`radio${index}`}>{option||""}</label>
                             </div>
                         )}
                     </Container>

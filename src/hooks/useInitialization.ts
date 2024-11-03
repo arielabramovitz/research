@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
-import {getSentenceSets} from "../components/survey-form/api.ts";
+import {getSentenceSets} from "../utils/api.ts";
+import {SentenceSet, StateSetters, TableRow} from "../utils/types.ts";
 
 const STORAGE_KEYS = {
     SENTENCE_SETS: 'sentenceSets',

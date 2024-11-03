@@ -1,4 +1,4 @@
-type TableRow = {
+export type TableRow = {
     setNumber: number;
     questionHead: string;
     questionTail: string;
@@ -9,13 +9,13 @@ type TableRow = {
     tailIndex: number;
 };
 
-type SentenceSet = {
+export type SentenceSet = {
     id: string;
     sentences: string[];
     verbs: string[];
 };
 
-type StateSetters = {
+export type StateSetters = {
     setIMCAnswers: (answers: number[]) => void;
     setAttentionAnswers: (answers: number[]) => void;
     setIMCMistakeCount: (count: number) => void;
@@ -27,3 +27,26 @@ type StateSetters = {
     setCurrSet: (index: number) => void;
     setBoldedVerb: (verb: string) => void;
 };
+
+export interface SurveyState {
+    sentenceSets: SentenceSet[];
+    currSet: number;
+    requiresCompletion: boolean;
+    IMCAnswers: number[];
+    attentionAnswers: number[];
+    alertnessCorrectCount: number;
+    IMCMistakeCount: number;
+    tailIndex: number;
+    showAlertnessModal: boolean;
+    followUpAnswerChecked: number;
+    highlightedAnswer: string;
+    boldedVerb: string;
+    followUp: string;
+    questionHead: string;
+    questionTail: string;
+    checked: boolean;
+    tableRows: TableRow[];
+    tailCompletion: string;
+    boldedVerbsInds: number[];
+    doRedirect: boolean;
+}

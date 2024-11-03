@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "runapi": "tsc ./src/components/survey-form/api.ts"
+    "runapi": "tsc src/utils/api.ts"
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",

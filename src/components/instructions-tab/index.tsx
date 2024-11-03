@@ -15,9 +15,9 @@ function InstructionsTab({showInstructionsModal, setShowInstructionsModal,setSho
     };
 
     const handleChecked = () => {
-        setShowInstructionsModal(false);
+        setShowInstructionsModal((prev)=>!prev);
         sessionStorage.setItem("readInstructions", "false")
-        setShowExamplesModal(true)
+        setShowExamplesModal((prev)=>!prev)
         sessionStorage.setItem("readExamples", "true")
 
     }

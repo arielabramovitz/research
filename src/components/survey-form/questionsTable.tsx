@@ -1,7 +1,7 @@
 import React from "react";
 import {Button, Table} from "react-bootstrap";
 import {Pencil, Trash} from "react-bootstrap-icons";
-import {TableRow} from "./index";
+import {TableRow} from "../../utils/types.ts";
 
 export interface TableProps {
     tableRows: TableRow[];

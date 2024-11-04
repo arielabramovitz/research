@@ -26,6 +26,7 @@ export interface SurveyState {
     doRedirect: boolean;
 }
 
+
 export type SurveyAction =
     | { type: 'SET_SENTENCE_SETS'; payload: SentenceSet[] }
     | { type: 'SET_CURR_SET'; payload: number }
@@ -333,5 +334,7 @@ export function surveyReducer(state: SurveyState, action: SurveyAction): SurveyS
         default:
             return state;
     }
+
+
 
 }

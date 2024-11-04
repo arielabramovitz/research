@@ -110,37 +110,8 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     };
 
     const handleAttentionCheck = (answer: number) => {
-        // dispatch({ type: 'SET_SHOW_ALERTNESS_MODAL', payload: false });
+        dispatch({ type: 'HANDLE_ATTENTION_CHECK', payload: answer})
         sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "false");
-        //
-        const questionNum = Math.floor((state.currSet + 1) / ATTENTION_CHECK_INTERVAL);
-        const isIMCQuestion = questionNum % 2 === 0;
-        const currIndex = Math.floor(questionNum / 2);
-        //
-        const currQuestionSet = isIMCQuestion
-            ? IMCAttentionCheckQuestions
-            : attentionCheckQuestions;
-        //
-        if (isIMCQuestion) {
-        //     const newAnswers = [...state.IMCAnswers, answer];
-        //     dispatch({ type: 'SET_IMC_ANSWERS', payload: newAnswers });
-            sessionStorage.setItem(STORAGE_KEYS.IMC_ANSWERS, JSON.stringify(state.IMCAnswers));
-        } else {
-        //     const newAnswers = [...state.attentionAnswers, answer];
-        //     dispatch({ type: 'SET_ATTENTION_ANSWERS', payload: newAnswers });
-            sessionStorage.setItem(STORAGE_KEYS.ATTENTION_ANSWERS, JSON.stringify(state.attentionAnswers));
-        }
-        //
-        if (answer === currQuestionSet[currIndex].correctAnswerIndex) {
-        //     const newCount = state.alertnessCorrectCount + 1;
-        //     dispatch({ type: 'SET_ALERTNESS_COUNT', payload: newCount });
-            sessionStorage.setItem(STORAGE_KEYS.ALERTNESS_COUNT, state.alertnessCorrectCount.toString());
-        } else if (isIMCQuestion) {
-        //     const newIMCMistakes = state.IMCMistakeCount + 1;
-        //     dispatch({ type: 'SET_IMC_MISTAKE_COUNT', payload: newIMCMistakes });
-            sessionStorage.setItem(STORAGE_KEYS.IMC_MISTAKES, state.IMCMistakeCount.toString());
-        //
-        }
     };
 
     const handleTextSelect = (e: React.MouseEvent<HTMLElement>) => {
@@ -251,10 +222,11 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     };
 
     useEffect(()=>{
-        console.log(state.tableRows)
-    }, [state.tableRows])
+        console.log(state.showAlertnessModal)
+    }, [state.showAlertnessModal])
 
     useEffect(() => {
+        console.log(state.IMCAnswers)
         if (!hideSurvey && state.IMCAnswers.length === 0) {
             dispatch({ type: 'SET_SHOW_ALERTNESS_MODAL', payload: true });
             sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "true");
@@ -279,6 +251,13 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
             handleRedirect(state.alertnessCorrectCount === 6 ? completedWithSixCorrect : endedWithMistakes);
         }
     }, [state.doRedirect]);
+
+    useEffect(() => {
+        sessionStorage.setItem(STORAGE_KEYS.IMC_ANSWERS, JSON.stringify(state.IMCAnswers));
+        sessionStorage.setItem(STORAGE_KEYS.ATTENTION_ANSWERS, JSON.stringify(state.attentionAnswers));
+        sessionStorage.setItem(STORAGE_KEYS.ALERTNESS_COUNT, state.alertnessCorrectCount.toString());
+        sessionStorage.setItem(STORAGE_KEYS.IMC_MISTAKES, state.IMCMistakeCount.toString());
+    }, [state.IMCAnswers, state.attentionAnswers, state.alertnessCorrectCount, state.IMCMistakeCount]);
 
     useEffect(() => {
         if (state.sentenceSets[state.currSet]) {
@@ -548,6 +527,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
                     currSet={state.currSet}
                     showAlertnessModal={state.showAlertnessModal}
                     handleAttentionCheck={handleAttentionCheck}
+                    hideSurvey={hideSurvey}
                 /> :
                 <></>
 

@@ -29,18 +29,19 @@ function App() {
 
     useEffect(()=>{
         setHideSurvey(showExamplesModal||showInstructionsModal)
-
     },[showExamplesModal, showInstructionsModal])
 
     useEffect(() => {
-        const readInstruction = sessionStorage.getItem('readInstructions')
-        const readExamples = sessionStorage.getItem('readExamples')
+        const readInstruction = sessionStorage.getItem('showInstructions')
+        const readExamples = sessionStorage.getItem('showExamples')
+
         if (readInstruction) {
             setShowInstructionsModal(readInstruction === 'true')
         }
         if (readExamples) {
             setShowExamplesModal(readExamples === 'true')
         }
+        setHideSurvey(showExamplesModal||showInstructionsModal)
     }, [])
 
     return (

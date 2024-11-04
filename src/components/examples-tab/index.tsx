@@ -26,7 +26,7 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
     const [visible, setVisible] = useState<number[]>([0]);
     const handleChecked = () => {
         setShowExamplesModal(false)
-        sessionStorage.setItem("readExamples", "false")
+        sessionStorage.setItem("showExamples", "false")
     }
 
     const generateExamples = () =>

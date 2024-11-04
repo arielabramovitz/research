@@ -1,22 +1,31 @@
 import {Button, Container, Form, Modal} from "react-bootstrap";
 import {IMCAttentionCheckQuestions, attentionCheckQuestions} from "./questions.ts";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 
 
 interface AttentionCheckProps {
     handleAttentionCheck: (num: number) => void
     showAlertnessModal: boolean
     currSet: number
+    hideSurvey: boolean
 }
 
 export function AttentionCheck({
                                    currSet,
                                    showAlertnessModal,
                                    handleAttentionCheck,
+                                    hideSurvey
                                }: AttentionCheckProps) {
     const [currQuestion, setCurrQuestion] = useState<number>(0)
     const [chosenAnswer, setChosenAnswer] = useState<string>("")
     const questionSet = currQuestion % 2 === 0 ? IMCAttentionCheckQuestions : attentionCheckQuestions
+
+    useEffect(()=>{
+        const curr = sessionStorage.getItem("currQuestion")
+        if(curr){
+            setCurrQuestion(parseInt(curr))
+        }
+    }, [])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setChosenAnswer(e.target.value)
@@ -25,13 +34,14 @@ export function AttentionCheck({
     const handleSubmit = () => {
         handleAttentionCheck(parseInt(chosenAnswer))
         setCurrQuestion(prev=>prev+1)
+        sessionStorage.setItem("currQuestion", (currQuestion+1).toString())
         setChosenAnswer("")
     }
 
     return (
         <Modal
             animation={false}
-            show={showAlertnessModal}
+            show={showAlertnessModal && !hideSurvey}
             centered={true}
             backdrop="static"
             keyboard={false}

@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
-import {getSentenceSets} from "../components/survey-form/api.ts";
+import {getSentenceSets} from "../utils/api.ts";
+import {SentenceSet, StateSetters, TableRow} from "../utils/types.ts";
 
 const STORAGE_KEYS = {
     SENTENCE_SETS: 'sentenceSets',
@@ -78,19 +79,15 @@ export const useInitialization = (setters: StateSetters) => {
     useEffect(() => {
         const initialize = async () => {
             try {
-                // Load attention state
                 loadStoredAttentionState();
 
-                // Load or initialize sentence data
                 const cachedData = loadCachedSentenceData();
                 const sentenceData = cachedData || await initializeNewSentenceData();
 
-                // Update sentence-related states
                 setters.setSentenceSets(sentenceData.sets);
                 setters.setBoldedVerbsInds(sentenceData.boldedIndices);
                 setters.setCurrSet(sentenceData.currentSetIndex);
 
-                // Set initial bolded verb
                 if (sentenceData.sets[sentenceData.currentSetIndex]?.verbs) {
                     setters.setBoldedVerb(
                         sentenceData.sets[sentenceData.currentSetIndex]
@@ -99,20 +96,10 @@ export const useInitialization = (setters: StateSetters) => {
                 }
             } catch (error) {
                 console.error('Initialization error:', error);
-                // Handle initialization failure
             }
         };
 
         initialize();
     }, []);
 
-    // Storage availability check
-    useEffect(() => {
-        try {
-            storage.set('test', 'test');
-            storage.get('test', null);
-        } catch (error) {
-            console.error('SessionStorage is not available:', error);
-        }
-    }, []);
 };

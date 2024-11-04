@@ -86,7 +86,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     };
 
     const handleNextSet = async () => {
-        if (id === undefined || sessionId === undefined) {
+        if (!id || !sessionId) {
             alert("PROLIFIC_ID or SESSION_ID weren't specified")
         } else {
             await handleUpload();

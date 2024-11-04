@@ -90,7 +90,6 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
             alert("PROLIFIC_ID or SESSION_ID weren't specified")
         } else {
             await handleUpload();
-
             dispatch({ type: 'HANDLE_NEXT_SET'});
             const nextSet = state.currSet + 1;
             sessionStorage.setItem("currSet", nextSet.toString());

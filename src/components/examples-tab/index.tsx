@@ -91,7 +91,7 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                         <div className="tw-flex tw-w-full">
 
                                             {(!sentenceSet.requiresCompletion[ind] ? <div className="tw-flex tw-flex-col">
-                                                <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-text-[#006D77] tw-mb-2">{sentenceSet.postQuestion[ind]}</span>
+                                                <span hidden={sentenceSet.postQuestion[ind]?.length===0} className="tw-whitespace-pre-line tw-text-[#006D77] tw-mb-2">{sentenceSet.postQuestion[ind]}</span>
                                                 <span className="">השאלה שנוצרה: <b>{`${head} ${sentenceSet.requiresCompletion[ind] ? sentenceSet.tail[ind].slice(0, -4) : sentenceSet.tail[ind]}`}</b></span>
 
                                             </div> : (
@@ -242,12 +242,13 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                                 </div>
 
                                             )}
-                                        <span
-                                            className="tw-text-[#006D77] tw-pt-2">{sentenceSet.additional[ind]}</span>
+                                        
 
                                     </Container>
                                     <div
-                                        className={"tw-mt-8 tw-flex tw-w-full tw-justify-between tw-align-bottom"}>
+                                        
+                                        className={"tw-flex tw-flex-col tw-w-full tw-justify-between tw-align-bottom"}>
+                                        <span className="tw-text-[#006D77] tw-pb-2">{sentenceSet.additionalSave[ind]}</span>
                                         <Button
                                             size="sm"
                                             // active={!(sentenceSet.head.length - 1 === ind)}
@@ -256,6 +257,7 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                             className="tw-w-fit  tw-ml-2">
                                             שמור והוסף שאלה
                                         </Button>
+                                        <span className="tw-text-[#006D77] tw-py-2">{sentenceSet.additionalNext[ind]}</span>
                                         <Button
                                             size="sm"
                                             // active={sentenceSet.head.length - 1 === ind}
@@ -265,6 +267,7 @@ function ExamplesTab({showExamplesModal, setShowExamplesModal}: ExampleTabProps)
                                             המשך לסט המשפטים הבא
                                         </Button>
                                     </div>
+                                    {i !== numOfExamples - 1 ? <span className="tw-pt-8 tw-text-[#006D77]">{"נא לעבור לדוגמה הבאה"}</span> : <></>}
                                 </div>
                             )
                         )

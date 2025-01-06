@@ -13,7 +13,6 @@ import {
 } from "react-bootstrap";
 import QuestionTable from "./questionsTable.tsx";
 import {useSearchParams} from 'react-router-dom';
-import {ChevronLeft, ChevronRight} from "react-bootstrap-icons";
 import {AttentionCheck} from "./AttentionCheck.tsx";
 import {useInitialization} from "../../hooks/useInitialization.ts";
 import {
@@ -362,18 +361,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
                                         <span className="">השאלה שנוצרה: <b>{`${state.questionHead} ${state.questionTail}`}</b></span>
                                     </> : (
                                         <div className="tw-flex tw-flex-row tw-w-full">
-                                            {/*<input*/}
-                                            {/*    type="textarea"*/}
-                                            {/*    maxLength={64}*/}
-                                            {/*    id="state.tailCompletion"*/}
-                                            {/*    className="tw-min-w-fit tw-w-auto tw-px-1 tw-mt-2 tw-border-0 tw-underline"*/}
-                                            {/*    required*/}
-                                            {/*    value={state.tailCompletion}*/}
-                                            {/*    onChange={(e) => {*/}
-                                            {/*        setTailCompletion(e.target.value);*/}
-                                            {/*    }}*/}
-                                            {/*    placeholder="המשך\י את השאלה פה"*/}
-                                            {/*/>*/}
+
                                             <FormGroup
                                                 className="tw-w-full tw-h-[24px] tw-my-0 tw-p-0 tw-border-0 hover:tw-bg-transparent focus:tw-shadow-none focus:tw-outline-none focus-within:tw-outline-none">
                                                 <InputGroup

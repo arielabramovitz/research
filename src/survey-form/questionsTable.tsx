@@ -1,7 +1,7 @@
 import React from "react";
 import {Button, Table} from "react-bootstrap";
 import {Pencil, Trash} from "react-bootstrap-icons";
-import {TableRow} from "../../utils/types.ts";
+import {TableRow} from "../utils/types.ts";
 
 export interface TableProps {
     tableRows: TableRow[];
@@ -16,7 +16,7 @@ export default function QuestionTable(props:TableProps) {
             <tr className="" key={i}>
                 <td className="tw-w-4 tw-align-middle">
                     <Button
-                        className="tw-fill-[#0000003b] hover:tw-fill-[#000]"
+                        className="tw-fill-[#00000080] hover:tw-fill-[#000]"
                         variant="outline"
                         onClick={() => handleEditClick(i)}
                     >
@@ -43,10 +43,9 @@ export default function QuestionTable(props:TableProps) {
 
     return (
         <Table
-            className="tw-mt-4 tw-text-center"
+            className="tw-mt-auto tw-text-center"
             size="sm"
             bordered
-
             hover
         >
             <thead>

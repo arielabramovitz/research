@@ -1,9 +1,9 @@
 import React, {CSSProperties, ReactNode, useEffect, useState} from "react"
 import './App.css'
-import ExamplesTab from './components/examples-tab'
-import InstructionsTab from './components/instructions-tab'
-import SurveyForm from './components/survey-form'
-import {Container, Row, Modal, ModalDialog} from 'react-bootstrap'
+import ExamplesTab from './examples-tab'
+import InstructionsTab from './instructions-tab'
+import SurveyForm from './survey-form'
+import {Container, Row, Modal} from 'react-bootstrap'
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 
 
@@ -49,7 +49,7 @@ function App() {
             <Routes>
                 <Route path="/" element={
                     <Container fluid
-                               className={showInstructionsModal || showExamplesModal ? "tw-blur " : "" + 'tw-flex tw-flex-col tw-grow tw-w-full tw-h-full tw-px-12 tw-pt-10 '}>
+                               className={showInstructionsModal || showExamplesModal ? "tw-blur " : "" + 'tw-flex tw-flex-col tw-w-full tw-h-full tw-px-12 tw-py-10 '}>
 
                         <Modal dialogAs={CustomDiv} show={showInstructionsModal&&!showExamplesModal} center="" backdrop="static"
                                fullscreen="true"
@@ -92,7 +92,7 @@ function App() {
                         <Row className={showExamplesModal ? "tw-invisible" : "" + " tw-h-fit"}>
                             <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
                         </Row>
-                        <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + "tw-h-full"}>
+                        <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + "tw-h-full tw-pb-8"}>
                             <SurveyForm hideSurvey={hideSurvey}></SurveyForm>
                         </Row>
 

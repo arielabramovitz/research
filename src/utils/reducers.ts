@@ -1,4 +1,4 @@
-import {attentionCheckQuestions, followUps, IMCAttentionCheckQuestions} from "../components/survey-form/questions.ts";
+import {attentionCheckQuestions, followUps, IMCAttentionCheckQuestions} from "../survey-form/questions.ts";
 import {ATTENTION_CHECK_INTERVAL, MAX_IMC_MISTAKES, TOTAL_SETS} from "./consts.ts";
 import {TableRow, SentenceSet} from "./types.ts";
 

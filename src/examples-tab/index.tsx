@@ -238,6 +238,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
                   ) : (
                     <></>
                   )}
+                  {ind!==sentenceSet.head.length-1?<span className=" tw-py-8">{}</span>:<></>}
                 </div>
                 {i !== numOfExamples - 1 ? (
                   <span className="tw-pt-2 tw-text-[#006D77]">{"נא לעבור לדוגמה הבאה"}</span>
@@ -246,19 +247,26 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
                 )}
               </div>
             ))}
+            
           </Container>
           {chosen !== numOfExamples - 1 || !showExamplesModal ? (
-            <></>
+            <div>
+              <span className="tw-whitespace-pre-line tw-pt-2 tw-text-[#006D77]">{"שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.\nבהצלחה!"}</span>
+
+            </div>
           ) : (
-            <div className="tw-mt-4 tw-w-full tw-flex tw-justify-center">
-              <Form.Check
-                key={i}
-                className=""
-                onChange={() => {
-                  handleChecked();
-                }}
-                label="עברתי על כל הדוגמאות ואני מוכן/ה להתחיל"
-              />
+            <div>
+              <span>שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.</span>
+              <div className="tw-mt-4 tw-w-full tw-flex tw-justify-center">
+                <Form.Check
+                  key={i}
+                  className=""
+                  onChange={() => {
+                    handleChecked();
+                  }}
+                  label="עברתי על כל הדוגמאות ואני מוכן/ה להתחיל"
+                />
+            </div>
             </div>
           )}
         </Card>

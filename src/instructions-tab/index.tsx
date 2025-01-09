@@ -25,7 +25,7 @@ function InstructionsTab({showInstructionsModal, setShowInstructionsModal,setSho
 
     return (
 
-        <CollapsableCard bgColor="#bcbcff" header="הוראות">
+        <CollapsableCard bgColor="#d7dcf1" header="הוראות">
             <Container fluid>
                     
                 <p className="h6">בניסוי הזה נציג לכם משפטים בעברית בתוך הקשר של פיסקה. נבקש מכם לחשוב מאיזו
@@ -41,7 +41,7 @@ function InstructionsTab({showInstructionsModal, setShowInstructionsModal,setSho
                     בהצלחה!</p>
                 <div className={+!showInstructionsModal?"tw-hidden":""+" tw-flex tw-justify-center "}>
                     <Form.Check
-                        style={{backgroundColor: "#bcbcff"}}
+                        style={{backgroundColor: "#d7dcf1"}}
                         checked={!showInstructionsModal}
                         onChange={handleChecked}
                         label="קראתי את ההוראות"

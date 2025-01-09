@@ -292,7 +292,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
     });
   };
   return (
-    <CollapsableCard bgColor="#edf8b1" header="דוגמאות">
+    <CollapsableCard bgColor="#e3ebde" header="דוגמאות">
       <div className="tw-text-right tw-select-none">
         <Container className="tw-flex tw-items-center tw-h-12 tw-mt-2 tw-px-0 tw-justify-center">
           {createExampleButtons()}

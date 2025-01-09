@@ -20,7 +20,7 @@ export function CollapsableCard({defExpand ,header, children, bgColor}: Collapsa
         <Container fluid className="card-cont tw-mb-2 tw-border-collapse tw-h-full tw-select-none">
             <Card
                 
-                style={{backgroundColor: bgColor+"40"}}
+                style={{backgroundColor: bgColor}}
                 className={
                     !expend
                         ? "tw-transition-all tw-duration-300 hover:tw-scale-[101%] hover:tw-drop-shadow-lg"

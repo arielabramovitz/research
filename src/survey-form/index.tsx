@@ -273,7 +273,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     }, [state.tableRows, state.currSet]);
 
     return (
-        <CollapsableCard defExpand={true} bgColor="#b1d7f8" header="ניסוי">
+        <CollapsableCard defExpand={true} bgColor="#deecfa" header="ניסוי">
             <Container fluid className="tw-flex tw-flex-col tw-select-none tw-h-full tw-w-full">
 
                     {state.currSet < 30 ? (<Container ref={surveyRef} className="tw-flex tw-flex-col tw-h-full tw-p-1 tw-mb-2">
@@ -332,7 +332,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
 
                                 >
                                     {heads.map((val, i) => (
-                                        <option className="tw-bg-[#b1d7f880]" key={i} value={val}>
+                                        <option className="tw-bg-[#deecfa]" key={i} value={val}>
                                             {val}
                                         </option>
                                     ))}
@@ -352,7 +352,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
                                 >
 
                                     {tails.map((val, i) => (
-                                        <option className="tw-bg-[#b1d7f880]"  key={i} value={i}>
+                                        <option className="tw-bg-[#deecfa]"  key={i} value={i}>
                                             {val.tail}
                                         </option>
                                     ))}

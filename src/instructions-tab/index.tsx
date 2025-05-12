@@ -2,6 +2,7 @@ import React, { useState} from "react";
 import {Collapse, Container, Card, Form} from "react-bootstrap";
 import "./index.css"
 import { CollapsableCard } from "../components/collapsableCard";
+import { timedStorage } from '../utils/timedStorage';
 
 interface InstructionsTabProps {
     showInstructionsModal: boolean;
@@ -17,10 +18,9 @@ function InstructionsTab({showInstructionsModal, setShowInstructionsModal,setSho
 
     const handleChecked = () => {
         setShowInstructionsModal(false);
-        sessionStorage.setItem("showInstructions", "false")
+        timedStorage.set("showInstructions", "false", 15 * 60 * 1000);
         setShowExamplesModal(true)
-        sessionStorage.setItem("showExamples", "true")
-
+        timedStorage.set("showExamples", "true", 15 * 60 * 1000);
     }
 
     return (

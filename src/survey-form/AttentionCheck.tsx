@@ -1,6 +1,7 @@
 import {Button, Container, Form, Modal} from "react-bootstrap";
 import {IMCAttentionCheckQuestions, attentionCheckQuestions} from "./questions.ts";
 import React, {useEffect, useState} from "react";
+import { timedStorage } from '../utils/timedStorage';
 
 
 interface AttentionCheckProps {
@@ -21,8 +22,8 @@ export function AttentionCheck({
     const questionSet = currQuestion % 2 === 0 ? IMCAttentionCheckQuestions : attentionCheckQuestions
 
     useEffect(()=>{
-        const curr = sessionStorage.getItem("currQuestion")
-        if(curr){
+        const curr = timedStorage.get("currQuestion");
+        if(curr !== null && curr !== undefined){
             setCurrQuestion(parseInt(curr))
         }
     }, [])
@@ -34,7 +35,7 @@ export function AttentionCheck({
     const handleSubmit = () => {
         handleAttentionCheck(parseInt(chosenAnswer))
         setCurrQuestion(prev=>prev+1)
-        sessionStorage.setItem("currQuestion", (currQuestion+1).toString())
+        timedStorage.set("currQuestion", (currQuestion+1).toString(), 15 * 60 * 1000)
         setChosenAnswer("")
     }
 

@@ -5,6 +5,7 @@ import InstructionsTab from './instructions-tab'
 import SurveyForm from './survey-form'
 import {Container, Row, Modal} from 'react-bootstrap'
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import { timedStorage } from './utils/timedStorage';
 
 
 interface CustomDivProps {
@@ -32,8 +33,8 @@ function App() {
     },[showExamplesModal, showInstructionsModal])
 
     useEffect(() => {
-        const readInstruction = sessionStorage.getItem('showInstructions')
-        const readExamples = sessionStorage.getItem('showExamples')
+        const readInstruction = timedStorage.get('showInstructions')
+        const readExamples = timedStorage.get('showExamples')
 
         if (readInstruction) {
             setShowInstructionsModal(readInstruction === 'true')
@@ -92,7 +93,7 @@ function App() {
                         <Row className={showExamplesModal ? "tw-invisible" : "" + " tw-h-fit"}>
                             <ExamplesTab {...{showExamplesModal, setShowExamplesModal}}></ExamplesTab>
                         </Row>
-                        <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + "tw-h-full tw-pb-8"}>
+                        <Row className={showExamplesModal||showInstructionsModal ? "tw-invisible" : "" + " tw-h-full tw-mb-8:important"}>
                             <SurveyForm hideSurvey={hideSurvey}></SurveyForm>
                         </Row>
 

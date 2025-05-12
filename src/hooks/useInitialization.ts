@@ -1,6 +1,8 @@
 import {useEffect} from 'react';
 import {getSentenceSets} from "../utils/api.ts";
 import {SentenceSet, StateSetters, TableRow} from "../utils/types.ts";
+import { ATTENTION_CHECK_SETS } from "../utils/consts.ts";
+import { timedStorage } from '../utils/timedStorage';
 
 const STORAGE_KEYS = {
     SENTENCE_SETS: 'sentenceSets',
@@ -16,19 +18,15 @@ const STORAGE_KEYS = {
 
 const storage = {
     get: <T>(key: string, defaultValue: T): T => {
-        try {
-            const item = sessionStorage.getItem(key);
-            return item ? JSON.parse(item) : defaultValue;
-        } catch {
-            return defaultValue;
-        }
+        const item = timedStorage.get(key);
+        return item !== null ? item : defaultValue;
     },
 
     set: <T>(key: string, value: T): void => {
         try {
-            sessionStorage.setItem(key, JSON.stringify(value));
+            timedStorage.set(key, value, 15 * 60 * 1000); // 15 minutes
         } catch (error) {
-            console.error(`Error saving to sessionStorage: ${error}`);
+            console.error(`Error saving to timedStorage: ${error}`);
         }
     }
 };
@@ -40,15 +38,18 @@ export const useInitialization = (setters: StateSetters) => {
             attentionAnswers: storage.get<number[]>(STORAGE_KEYS.ATTENTION_ANSWERS, []),
             IMCMistakes: storage.get<number>(STORAGE_KEYS.IMC_MISTAKES, 0),
             alertnessCount: storage.get<number>(STORAGE_KEYS.ALERTNESS_COUNT, 0),
-            showModal: storage.get<boolean>(STORAGE_KEYS.SHOW_MODAL, false),
             tableRows: storage.get<TableRow[]>(STORAGE_KEYS.TABLE_ROWS, [])
         };
+
+        const currSet = storage.get<number>(STORAGE_KEYS.CURR_SET, 0);
+        // Only show modal if currSet is in ATTENTION_CHECK_SETS
+        const showModal = ATTENTION_CHECK_SETS.includes(currSet);
 
         setters.setIMCAnswers(state.IMCAnswers);
         setters.setAttentionAnswers(state.attentionAnswers);
         setters.setIMCMistakeCount(state.IMCMistakes);
         setters.setAlertnessCorrectCount(state.alertnessCount);
-        setters.setShowAlertnessModal(state.showModal);
+        setters.setShowAlertnessModal(showModal);
         setters.setTableRows(state.tableRows);
     };
 

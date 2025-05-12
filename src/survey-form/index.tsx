@@ -1,6 +1,6 @@
 import React, {ChangeEvent, useEffect, useMemo, useRef, useReducer} from "react";
-import {followUps, heads, tails, IMCAttentionCheckQuestions, attentionCheckQuestions} from "./questions.ts";
-import {ParticipantAnswers, SentenceSet, uploadParticipantAnswers,} from "../utils/api.ts";
+import {followUps, heads, tails, IMCAttentionCheckQuestions, attentionCheckQuestions} from "./questions.js";
+import {ParticipantAnswers, SentenceSet, uploadParticipantAnswers, UploadError} from "../utils/api.js";
 import {
     Button,
     Card,
@@ -11,25 +11,26 @@ import {
     InputGroup,
     Spinner
 } from "react-bootstrap";
-import QuestionTable from "./questionsTable.tsx";
+import QuestionTable from "./questionsTable.js";
 import {useSearchParams} from 'react-router-dom';
-import {AttentionCheck} from "./AttentionCheck.tsx";
-import {useInitialization} from "../hooks/useInitialization.ts";
+import {AttentionCheck} from "./AttentionCheck.js";
+import {useInitialization} from "../hooks/useInitialization.js";
 import {
     ATTENTION_CHECK_INTERVAL, MAX_IMC_MISTAKES, REQUIRED_CORRECT_COUNT,
     STORAGE_KEYS, TOTAL_SETS,
     ATTENTION_CHECK_SETS
-} from "../utils/consts.ts"
+} from "../utils/consts.js"
 
-import {initialState, surveyReducer} from "../utils/reducers.ts"
-import {StateSetters, TableRow} from "../utils/types.ts";
-import { CollapsableCard } from "../components/collapsableCard.tsx";
+import {initialState, surveyReducer} from "../utils/reducers.js"
+import {StateSetters, TableRow} from "../utils/types.js";
+import { CollapsableCard } from "../components/collapsableCard.js";
 // Import new components
-import SentenceDisplay from "./components/SentenceDisplay.tsx";
-import QuestionBuilder from "./components/QuestionBuilder.tsx";
-import QuestionPreview from "./components/QuestionPreview.tsx";
-import FollowUpQuestion from "./components/FollowUpQuestion.tsx";
-import ActionButtons from "./components/ActionButtons.tsx";
+import SentenceDisplay from "./components/SentenceDisplay.js";
+import QuestionBuilder from "./components/QuestionBuilder.js";
+import QuestionPreview from "./components/QuestionPreview.js";
+import FollowUpQuestion from "./components/FollowUpQuestion.js";
+import ActionButtons from "./components/ActionButtons.js";
+import { timedStorage } from '../utils/timedStorage';
 
 
 
@@ -79,8 +80,7 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
                 dispatch({type: 'HANDLE_TAIL_SELECT', payload: payload})
             } else {
                 // Handle the case where the index might be invalid (e.g., placeholder selected)
-                // Reset relevant state if necessary
-                dispatch({type: 'HANDLE_TAIL_SELECT', payload: { index: 0, text: '', qType: 0 }}); // Example reset
+                dispatch({type: 'HANDLE_TAIL_SELECT', payload: { index: 0, text: '', qType: 0 }});
             }
         }
     };
@@ -88,38 +88,29 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     const handleNextSet = async () => {
         if (!id) {
             alert("PROLIFIC_ID or SESSION_ID weren't specified")
-        } else {
-            // Await upload before proceeding
-            try {
-                await handleUpload();
-            } catch (error) {
-                // If upload fails (e.g., network error, missing ID), stop execution.
-                console.error("Upload failed, cannot proceed to next set.", error);
-                return; // Stop here
-            }
-
-            dispatch({ type: 'HANDLE_NEXT_SET'});
-            const nextSet = state.currSet + 1; // nextSet is calculated *after* dispatch updates state.currSet
-            sessionStorage.setItem(STORAGE_KEYS.CURR_SET, nextSet.toString()); // Use STORAGE_KEYS.CURR_SET
-
-            // Use the ATTENTION_CHECK_SETS array for the condition
-            if (ATTENTION_CHECK_SETS.includes(nextSet) && nextSet < TOTAL_SETS) {
-                sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "true");
-                dispatch({ type: 'SET_SHOW_ALERTNESS_MODAL', payload: true });
-            }
-            if (nextSet === TOTAL_SETS) {
-                handleRedirect(
-                    state.alertnessCorrectCount >= REQUIRED_CORRECT_COUNT
-                        ? completedWithSixCorrect
-                        : endedWithMistakes
-                );
-            }
+            return;
         }
+        // Optimistically move to the next set immediately
+        dispatch({ type: 'HANDLE_NEXT_SET'});
+        if (ATTENTION_CHECK_SETS.includes(state.currSet + 1) && state.currSet + 1 < TOTAL_SETS) {
+            dispatch({ type: 'SET_SHOW_ALERTNESS_MODAL', payload: true });
+        }
+        if (state.currSet + 1 === TOTAL_SETS) {
+            handleRedirect(
+                state.alertnessCorrectCount >= REQUIRED_CORRECT_COUNT
+                    ? completedWithSixCorrect
+                    : endedWithMistakes
+            );
+        }
+        // Upload in the background
+        handleUpload().catch((error) => {
+            // Show error notification, allow retry, etc.
+            alert("Failed to save progress. Please check your connection and try again.");
+        });
     };
 
     const handleAttentionCheck = (answer: number) => {
         dispatch({ type: 'HANDLE_ATTENTION_CHECK', payload: answer})
-        sessionStorage.setItem(STORAGE_KEYS.SHOW_MODAL, "false");
     };
 
     const handleTextSelect = (e: React.MouseEvent<HTMLElement>) => {
@@ -153,74 +144,73 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     const handleEditClick = (i: number) => {
         const row = filteredRows[i];
         dispatch({ type: 'HANDLE_EDIT', payload: {rowIndex: i, row: row} });
-
-        sessionStorage.setItem("tableRows", JSON.stringify(state.tableRows)); // This might be redundant if reducer updates state correctly
-
-        // Reset refs - Important: Direct DOM manipulation is discouraged in React.
-        // The state update from HANDLE_EDIT should ideally trigger re-renders
-        // that update the values of controlled components (Form.Select, Form.Control).
-        // If direct ref manipulation is strictly needed, ensure it doesn't conflict with React's rendering.
-        // Let's comment out direct ref manipulation for now and rely on state updates.
-        // if (headRef.current) {
-        //     headRef.current.value = row.questionHead;
-        // }
-        // if (tailRef.current) {
-             // Finding the correct index for the tail might be complex here.
-             // It's better to let the state update handle the <Form.Select value={state.tailIndex}>
-        //    tailRef.current.value = String(row.tailIndex);
-        // }
-        // if (followUpAnswerRef.current) {
-        //     followUpAnswerRef.current.value = row.followupAnswer;
-        // }
-        // If tailCompletionRef exists and row has tailCompletion:
-        // if (tailCompletionRef.current && row.tailCompletion) {
-        //     tailCompletionRef.current.value = row.tailCompletion;
-        // }
     };
 
     const handleDeleteClick = (i: number) => {
         dispatch({ type: 'DELETE_TABLE_ROW', payload: i });
-        sessionStorage.setItem("tableRows", JSON.stringify(state.tableRows)); // Redundant if reducer handles state update
     };
 
-    const handleUpload = async () => { // Made async
-        if (id && sessionId) {
-            const userAnswers: ParticipantAnswers = {
-                id: id,
-                sessionId: sessionId,
-                IMCAnswers: state.IMCAnswers,
-                AttentionAnswers: state.attentionAnswers,
-                answers: [{
-                    sentenceSetId: state.sentenceSets[state.currSet].id,
-                    first: state.sentenceSets[state.currSet].sentences[0],
-                    second: state.sentenceSets[state.currSet].sentences[1],
-                    third: state.sentenceSets[state.currSet].sentences[2],
-                    verb: state.boldedVerb,
-                    questions: filteredRows.map((row: TableRow) => {
-                        return {
-                            // Ensure tailCompletion is included correctly
-                            question: `${row.questionHead} ${row.questionTail}${row.tailCompletion ? ' ' + row.tailCompletion : ''}`,
-                            answer: row.answer,
-                            followUp: row.followupQuestion,
-                            followUpAnswer: row.followupAnswer || ""
-                        }
-                    })
-                }]
-            };
-            // Use await here
-            try {
-                await uploadParticipantAnswers(userAnswers);
-                console.log("Answers uploaded successfully for set:", state.currSet + 1);
-            } catch (error) {
-                console.error("Failed to upload answers:", error);
-                // Handle upload error appropriately, maybe alert the user or retry
-                alert("Failed to save progress. Please check your connection and try moving to the next set again.");
-                throw error; // Re-throw to prevent moving to the next set if upload fails
+    const handleUpload = async () => {
+        if (!id || !sessionId) {
+            console.error("Missing ID or SessionID, cannot upload.");
+            alert("Cannot save progress: Missing Prolific ID or Session ID.");
+            return;
+        }
+
+        const userAnswers: ParticipantAnswers = {
+            id: id,
+            sessionId: sessionId,
+            IMCAnswers: state.IMCAnswers,
+            AttentionAnswers: state.attentionAnswers,
+            answers: [{
+                sentenceSetId: state.sentenceSets[state.currSet]?.id || '',
+                first: state.sentenceSets[state.currSet]?.sentences?.[0] || '',
+                second: state.sentenceSets[state.currSet]?.sentences?.[1] || '',
+                third: state.sentenceSets[state.currSet]?.sentences?.[2] || '',
+                verb: state.boldedVerb,
+                questions: filteredRows.map((row: TableRow) => {
+                    return {
+                        question: `${row.questionHead} ${row.questionTail}${row.tailCompletion ? ' ' + row.tailCompletion : ''}`,
+                        answer: row.answer,
+                        followUp: row.followupQuestion,
+                        followUpAnswer: row.followupAnswer || ""
+                    }
+                })
+            }]
+        };
+
+        try {
+            await uploadParticipantAnswers(userAnswers);
+            console.log("Answers uploaded successfully for set:", state.currSet + 1);
+        } catch (error: unknown) {
+            console.error("Failed to upload answers:", error);
+            
+            // Handle specific error types
+            if (error instanceof UploadError) {
+                if (error.message.includes('Missing required fields')) {
+                    alert("Cannot save progress: Missing required information. Please check your Prolific ID and Session ID.");
+                } else if (error.message.includes('No answers provided')) {
+                    alert("Cannot save progress: No answers to upload. Please add some answers before proceeding.");
+                } else if (error.status && error.status >= 400 && error.status < 500) {
+                    alert("Cannot save progress: Invalid data. Please check your answers and try again.");
+                } else {
+                    alert("Failed to save progress. Please check your connection and try again.");
+                }
+            } else {
+                alert("An unexpected error occurred. Please try again.");
             }
-        } else {
-             console.error("Missing ID or SessionID, cannot upload.");
-             alert("Cannot save progress: Missing Prolific ID or Session ID.");
-             throw new Error("Missing ID or SessionID"); // Prevent moving to next set
+            
+            // Store the current state in sessionStorage as a backup
+            try {
+                sessionStorage.setItem('lastFailedUpload', JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    answers: userAnswers
+                }));
+            } catch (storageError) {
+                console.error('Failed to store backup:', storageError);
+            }
+            
+            return;
         }
     };
 
@@ -245,10 +235,6 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
 
 
         dispatch({ type: 'ADD_TABLE_ROW', payload: newRow });
-        // Update session storage *after* dispatch completes if possible,
-        // or rely on useEffect to sync state.tableRows to session storage.
-        // For simplicity, we update immediately, but be aware of potential race conditions.
-        sessionStorage.setItem("tableRows", JSON.stringify([...state.tableRows, newRow]));
         dispatch({ type: 'RESET_FORM' });
 
         // Manually reset refs if needed, although relying on controlled components is better
@@ -268,15 +254,12 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
         }
         // Condition 3: If a follow-up question exists...
         if (state.followUp.length > 0) {
-            // EITHER follow-up answer is provided AND radio 1 is checked
-            // OR radio 2 ("no answer") is checked.
-             const answerProvided = state.highlightedAnswer.trim().length > 0;
-             const radio1Checked = state.followUpAnswerChecked === 1;
-             const radio2Checked = state.followUpAnswerChecked === 2;
-
-             if (!((answerProvided && radio1Checked) || radio2Checked)) {
-                 return true; // Disabled
-             }
+            const answerProvided = state.highlightedAnswer.trim().length > 0;
+            const radio1Checked = state.followUpAnswerChecked === 1;
+            const radio2Checked = state.followUpAnswerChecked === 2;
+            if (!((answerProvided && radio1Checked) || radio2Checked)) {
+                return true; // Disabled
+            }
         }
         // If none of the disabling conditions are met, the button is enabled.
         return false;
@@ -339,6 +322,30 @@ function SurveyForm({hideSurvey}: { hideSurvey: boolean }) {
     const filteredRows = useMemo(() => {
         return state.tableRows.filter((row: TableRow) => row.setNumber === state.currSet + 1);
     }, [state.tableRows, state.currSet]);
+
+    // Restore from timedStorage on mount
+    React.useEffect(() => {
+        const saved = timedStorage.get('surveyState');
+        if (saved) {
+            // Restore all state fields (dispatch actions for each)
+            if (saved.sentenceSets) dispatch({ type: 'SET_SENTENCE_SETS', payload: saved.sentenceSets });
+            if (typeof saved.currSet === 'number') dispatch({ type: 'SET_CURR_SET', payload: saved.currSet });
+            if (Array.isArray(saved.IMCAnswers)) dispatch({ type: 'SET_IMC_ANSWERS', payload: saved.IMCAnswers });
+            if (Array.isArray(saved.attentionAnswers)) dispatch({ type: 'SET_ATTENTION_ANSWERS', payload: saved.attentionAnswers });
+            if (typeof saved.alertnessCorrectCount === 'number') dispatch({ type: 'SET_ALERTNESS_COUNT', payload: saved.alertnessCorrectCount });
+            if (typeof saved.IMCMistakeCount === 'number') dispatch({ type: 'SET_IMC_MISTAKE_COUNT', payload: saved.IMCMistakeCount });
+            if (Array.isArray(saved.tableRows)) dispatch({ type: 'SET_TABLE_ROWS', payload: saved.tableRows });
+            if (Array.isArray(saved.boldedVerbsInds)) dispatch({ type: 'SET_BOLDED_VERBS_INDS', payload: saved.boldedVerbsInds });
+            if (typeof saved.showAlertnessModal === 'boolean') dispatch({ type: 'SET_SHOW_ALERTNESS_MODAL', payload: saved.showAlertnessModal });
+            if (typeof saved.boldedVerb === 'string') dispatch({ type: 'SET_BOLDED_VERB', payload: saved.boldedVerb });
+            // Add more fields as needed
+        }
+    }, []);
+
+    // Save to timedStorage on every state change
+    React.useEffect(() => {
+        timedStorage.set('surveyState', state, 15 * 60 * 1000); // 15 minutes
+    }, [state]);
 
     return (
         <CollapsableCard defExpand={true} bgColor="#deecfa" header="ניסוי">

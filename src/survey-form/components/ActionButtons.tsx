@@ -32,7 +32,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 size="sm"
                 disabled={handleDisabledSave()}
                 variant="success"
-                className={isSaveVisible ? "tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg" : "tw-invisible"}
+                className={isSaveVisible ? "tw-w-fit tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg" : "tw-invisible"}
             >
                 שמור והוסף שאלה
             </Button>
@@ -42,7 +42,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                     disabled={isNextSetDisabled}
                     size="sm"
                     variant="primary"
-                    className="tw-w-fit tw-ml-2 tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg"
+                    className="tw-w-fit tw-transition-all tw-duration-300 hover:tw-scale-[105%] hover:tw-drop-shadow-lg"
                 >
                     {currSet < 29 ? "המשך לסט המשפטים הבא" : "סיים"}
                 </Button>

@@ -36,7 +36,7 @@ export function CollapsableCard({defExpand ,header, children, bgColor}: Collapsa
                 </Card.Header>
                 <Collapse in={expend} className=''>
                     <div className="">
-                        <Card.Body  className={"tw-px-0"}>
+                        <Card.Body  className={"tw-px-0 tw-mb-8"}>
                             {children}
                         </Card.Body>
                     </div>

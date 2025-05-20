@@ -7,6 +7,7 @@ interface SentenceDisplayProps {
     currSet: number;
     boldedVerbsInds: number[];
     handleTextSelect: (e: React.MouseEvent<HTMLElement>) => void;
+    loading?: boolean;
 }
 
 const SentenceDisplay: React.FC<SentenceDisplayProps> = ({
@@ -14,6 +15,7 @@ const SentenceDisplay: React.FC<SentenceDisplayProps> = ({
     currSet,
     boldedVerbsInds,
     handleTextSelect,
+    loading = false,
 }) => {
     const currentSetData = sentenceSets[currSet];
     const boldedVerb = currentSetData?.verbs[boldedVerbsInds[currSet]];
@@ -41,36 +43,55 @@ const SentenceDisplay: React.FC<SentenceDisplayProps> = ({
     // Apply highlighting to the second sentence
     const highlightedSecondSentence = highlightVerb(sentences?.[1], boldedVerb);
 
+    const isLoading = loading || sentenceSets.length === 0 || !sentences;
+
     return (
         <>
-            <div className="tw-pb-8">
-                הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br></br> השאלות מנוסחות בזמן הווה אך
-                מתייחסות גם לעתיד
-                או עבר.
-            </div>
-            <Card
-                className="bd tw-h-full tw-min-h-32 tw-p-4 tw-overflow-y-hidden tw-select-text"
-                onMouseUp={handleTextSelect}
-                style={{ backgroundColor: "inherit" }}
-            >
-                {sentenceSets.length === 0 || !sentences ? (
-                    <div className="tw-flex tw-items-center tw-justify-center">
-                        <Spinner animation="border" />
+            {isLoading ? (
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.85)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                }}>
+                    <Spinner animation="border" role="status" style={{ width: '5rem', height: '5rem' }} />
+                    <div style={{ marginTop: '1.5rem', fontSize: '1.5rem', color: '#007bff', fontWeight: 'bold' }}>
+                        טוען נתונים...
                     </div>
-                ) : (
-                    <div>
-                        {/* Display first sentence as is */}
-                        <span>{`${sentences[0]} `}</span>
-                        {/* Display second sentence with highlighting */}
-                        <span
-                            className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
-                            dangerouslySetInnerHTML={{ __html: highlightedSecondSentence }}
-                        ></span>
-                        {/* Display third sentence as is */}
-                        <span>{` ${sentences[2]}`}</span>
+                </div>
+            ) : (
+                <>
+                    <div className="tw-pb-8">
+                        הרכיבו שאלה על ידי בחירת אלמנטים בשני התפריטים להלן.<br /> השאלות מנוסחות בזמן הווה אך
+                        מתייחסות גם לעתיד
+                        או עבר.
                     </div>
-                )}
-            </Card>
+                    <Card
+                        className="bd tw-h-full tw-min-h-32 tw-p-4 tw-overflow-y-hidden tw-select-text"
+                        onMouseUp={handleTextSelect}
+                        style={{ backgroundColor: "inherit" }}
+                    >
+                        <div>
+                            {/* Display first sentence as is */}
+                            <span>{`${sentences[0]} `}</span>
+                            {/* Display second sentence with highlighting */}
+                            <span
+                                className="tw-bg-lapis_lazuli-700 tw-bg-opacity-30"
+                                dangerouslySetInnerHTML={{ __html: highlightedSecondSentence }}
+                            ></span>
+                            {/* Display third sentence as is */}
+                            <span>{` ${sentences[2]}`}</span>
+                        </div>
+                    </Card>
+                </>
+            )}
         </>
     );
 };

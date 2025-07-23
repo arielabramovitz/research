@@ -67,13 +67,10 @@ export async function uploadParticipantAnswers(answers: ParticipantAnswers, maxR
                 method: "POST",
                 headers: {"Content-type": "application/json"},
                 body: JSON.stringify(answers)
-            }).then((res)=>{
-                console.log(res)
-                return res
             });
 
             if (response.status === 200) {
-                console.log(`Upload successful on attempt ${attempt}`);
+                // console.log(`Upload successful on attempt ${attempt}`);
                 return true;
             }
 

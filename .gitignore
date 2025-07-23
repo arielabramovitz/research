@@ -28,3 +28,6 @@ dist-ssr
 src/assets/questions.json
 .hintrc
 .venv
+*/.venv
+TODO.md
+*/.env

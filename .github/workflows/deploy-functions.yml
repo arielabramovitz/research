@@ -1,27 +1,26 @@
-name: Deploy Azure Functions
+name: Deploy Azure Function
 
 on:
   push:
-    paths:
-      - './backend'  # Only trigger when something changes in this folder
     branches:
-      - master
+      - master  # or your default branch
+    paths:
+      - 'backend/**'  # Only trigger when backend folder changes
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'jemh-functions'  # Replace with your function app name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './backend'       # Path to your function app code
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: jemh-functions
-          package: ./backend
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+    - name: 'Deploy to Azure Functions'
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

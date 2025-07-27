@@ -17,7 +17,6 @@ def getSentences(req: func.HttpRequest) -> func.HttpResponse:
     DB_NAME = "ResearchDB"
     CONT_NAME = "SentenceSets"
     n = req.params.get('n')
-    
     if n:
         client = CosmosClient(URI, credential=PKEY)
         db = client.get_database_client(DB_NAME)

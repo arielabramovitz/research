@@ -50,9 +50,9 @@ function App() {
             <Routes>
                 <Route path="/" element={
                     <Container fluid
-                               className={showInstructionsModal || showExamplesModal ? "tw-blur " : "" + 'tw-flex tw-flex-col tw-w-full tw-h-full tw-px-12 tw-py-10 '}>
+                               className={showInstructionsModal || showExamplesModal ? "tw-opacity-0 " : "" + 'tw-flex tw-flex-col tw-w-full tw-h-full tw-px-12 tw-py-10 '}>
 
-                        <Modal dialogAs={CustomDiv} show={showInstructionsModal&&!showExamplesModal} center="" backdrop="static"
+                        <Modal dialogAs={CustomDiv} show={showInstructionsModal&&!showExamplesModal} center="" backdrop={false}
                                fullscreen="true"
                                className={"tw-h-fit"}>
                             <Modal.Body className="tw-px-12 tw-w-full tw-py-8">
@@ -66,7 +66,7 @@ function App() {
                             </Modal.Body>
                         </Modal>
                         <Modal dialogAs={CustomDiv} show={!showInstructionsModal&&showExamplesModal} center=""
-                               backdrop="static" fullscreen="true"
+                               backdrop={false  } fullscreen="true"
                                className={""} scrollable={true}>
                             <Modal.Body className=" tw-px-12 tw-w-full tw-py-8">
                                 <Row className="tw-h-fit">

@@ -3,9 +3,9 @@ name: Deploy Azure Functions
 on:
   push:
     paths:
-      - 'backend/**'  # Only trigger when something changes in this folder
+      - './backend'  # Only trigger when something changes in this folder
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:

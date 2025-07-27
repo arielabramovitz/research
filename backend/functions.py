@@ -12,7 +12,7 @@ available_indices = list(set(range(num_of_rows)) - temporary_excluded)
 
 
 @app.route(route="sentences", methods=[func.HttpMethod.GET])
-def sentences(req: func.HttpRequest) -> func.HttpResponse:
+def getSentences(req: func.HttpRequest) -> func.HttpResponse:
     PKEY = os.getenv("PKEY")
     URI = os.getenv("URI")
     DB_NAME = "ResearchDatabase"
@@ -61,7 +61,7 @@ def updateExistingAnswers(prevAnswers, newAnswers):
 
 
 @app.route(route="answers", auth_level=func.AuthLevel.ANONYMOUS, methods=[func.HttpMethod.POST])
-def postAnswers(req: func.HttpRequest) -> func.HttpResponse:
+def uploadAnswers(req: func.HttpRequest) -> func.HttpResponse:
     PKEY = os.getenv("PKEY")
     URI = os.getenv("URI")
     DB_NAME = "ResearchDatabase"
@@ -76,7 +76,7 @@ def postAnswers(req: func.HttpRequest) -> func.HttpResponse:
         client = CosmosClient(URI, credential=PKEY)
         db = client.get_database_client(DB_NAME)
         container = db.get_container_client(CONT_NAME)
-        queryPrev = f"SELECT * FROM c WHERE c.id='{pid}' AND c.sessionId='{session_id}'"
+        queryPrev = f"SELECT * FROM c WHERE c.prolific_id='{pid}' AND c.sessionId='{session_id}'"
         prevAnswers = list(container.query_items(queryPrev, enable_cross_partition_query=True))
         merged = req_body
         if prevAnswers:
@@ -92,25 +92,3 @@ def postAnswers(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(f"Error: {e.message}", status_code=500)
 
     return func.HttpResponse("Invalid input", status_code=400)
-
-
-# @app.route(route="answers", auth_level=func.AuthLevel.ANONYMOUS, methods=[func.HttpMethod.GET])
-# def getAnswers(req: func.HttpRequest) -> func.HttpResponse:
-#     PKEY = os.getenv("PKEY")
-#     URI = os.getenv("URI")
-#     DB_NAME = "ResearchDatabase"
-#     CONT_NAME = "ParticipantAnswers"
-#     pid = req.params.get('pid')
-#     if pid:
-#         client = CosmosClient(URI, credential=PKEY)
-#         db = client.get_database_client(DB_NAME)
-#         container = db.get_container_client(CONT_NAME)
-#         query = f"SELECT * FROM c WHERE c.id='{pid}'"
-#         items = list(container.query_items(query=query, enable_cross_partition_query=True))
-#         body = json.dumps(items)
-#         return func.HttpResponse(body, status_code=200)
-#     else:
-#         return func.HttpResponse(
-#             "Missing pid or answers.",
-#             status_code=200
-#         )

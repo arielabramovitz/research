@@ -1,4 +1,4 @@
-const baseUrl = "https://hujiresearch.azurewebsites.net/api"
+const baseUrl = "https://icy-ocean-0c7880b0f.1.azurestaticapps.net/api"
 export type SentenceSet = {
     id: string;
     sentences: string[];

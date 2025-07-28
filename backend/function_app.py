@@ -77,7 +77,11 @@ def uploadAnswers(req: func.HttpRequest) -> func.HttpResponse:
         container = db.get_container_client(CONT_NAME)
         queryPrev = f"SELECT * FROM c WHERE c.prolific_id='{pid}' AND c.sessionId='{session_id}'"
         prevAnswers = list(container.query_items(queryPrev, enable_cross_partition_query=True))
-        merged = req_body
+        merged = {
+            "prolific_id": pid,
+            "session_id": session_id,
+            "answers": answers
+        }
         if prevAnswers:
             merged = prevAnswers[0] 
             merged['answers'] += answers

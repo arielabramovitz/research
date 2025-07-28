@@ -63,7 +63,7 @@ def updateExistingAnswers(prevAnswers, newAnswers):
 def uploadAnswers(req: func.HttpRequest) -> func.HttpResponse:
     PKEY = os.getenv("PKEY")
     URI = os.getenv("URI")
-    DB_NAME = "ResearchDatabase"
+    DB_NAME = "ResearchDB"
     CONT_NAME = "ParticipantAnswers"
     req_body = req.get_json()
     pid = req_body.get('id')

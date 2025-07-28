@@ -78,9 +78,9 @@ def uploadAnswers(req: func.HttpRequest) -> func.HttpResponse:
         queryPrev = f"SELECT * FROM c WHERE c.prolific_id='{pid}' AND c.sessionId='{session_id}'"
         prevAnswers = list(container.query_items(queryPrev, enable_cross_partition_query=True))
         merged = req_body
+        merged["id"] = f"{pid}${session_id}"
         merged["prolific_id"] = pid
         merged["session_id"] = session_id
-        del merged["id"]
         del merged["sessionId"]
         if prevAnswers:
             merged = prevAnswers[0] 

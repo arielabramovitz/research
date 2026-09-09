@@ -257,7 +257,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
             </div>
           ) : (
             <div>
-              <span>"שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.\nבהצלחה!"</span>
+              <span>שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.\nבהצלחה!</span>
               <div className="tw-mt-4 tw-w-full tw-flex tw-justify-center">
                 <Form.Check
                   key={i}

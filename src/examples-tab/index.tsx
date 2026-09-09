@@ -242,7 +242,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
                   {ind!==sentenceSet.head.length-1?<span className=" tw-py-8">{}</span>:<></>}
                 </div>
                 {i !== numOfExamples - 1 ? (
-                  <span className="tw-pt-2 tw-text-[#006D77]">{"נא לעבור לדוגמה הבאה"}</span>
+                  <span className="tw-pt-2 tw-text-[#006D77]">{"נא לעבור לדוגמה הבאה."}</span>
                 ) : (
                   <></>
                 )}

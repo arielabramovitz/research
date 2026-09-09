@@ -67,7 +67,7 @@ export const exampleSentences = [
     tail: ["יתאפשר/יקרה בהינתן...?"],
     postPartOne: [''],
     betweenParts: ["נסמן “התשובה עונה על השאלה”."],
-    prePartTwo: ['יש להשלים גם כאן מילים מתוך הפיסקה הנתונה'],
+    prePartTwo: ['יש להשלים גם כאן מילים מתוך הפיסקה הנתונה.'],
     postPartTwo: ['במקרה הזה אין שאלה נוספת שמתאימה.'],
     preFollowUpQuestion:[''],
     preFollowUpPair:['השאלה הנוספת שתופיע במקרה הזה תהיה:'],

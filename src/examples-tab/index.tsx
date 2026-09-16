@@ -258,7 +258,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
           ) : (
             <div>
               <div>
-              <span className="tw-whitespace-pre-line tw-pt-2 tw-text-[#006D77]">{"שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.\nבהצלחה!"}</span>
+              <span className="tw-whitespace-pre-line tw-pt-2 tw-text-[#006D77]">{"שימו לב: במהלך הניסוי יוצגו מדי פעם גם שאלות פשוטות לבדיקת עירנות. ענו עליהן בדיוק לפי מה שיהיה מוסבר בהוראות.\nזהו, אפשר להתחיל. בהצלחה!"}</span>
 
             </div>
               <div className="tw-mt-4 tw-w-full tw-flex tw-justify-center">

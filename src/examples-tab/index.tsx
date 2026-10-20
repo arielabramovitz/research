@@ -290,7 +290,7 @@ function ExamplesTab({ showExamplesModal, setShowExamplesModal }: ExampleTabProp
           key={i}
           className="tw-shadow tw-mx-2 tw-w-32"
           onClick={() => handleChosen(i)}>
-          דוגמא {ind + 1}
+          דוגמה {ind + 1}
         </Button>
       );
     });
